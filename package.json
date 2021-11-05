@@ -1,0 +1,32 @@
+{
+  "name": "albio",
+  "version": "1.0.0",
+  "description": "Astronomy package infrastructure for JavaScript",
+  "main": "dist/albio.js",
+  "module": "dist/albio.mjs",
+  "typings": "dist/albio.d.ts",
+  "scripts": {
+    "build": "rimraf dist && rollup -c",
+    "cleanup": "prettier --write src --parser typescript"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/melindachang/albio.git"
+  },
+  "keywords": [],
+  "author": "Melinda Chang <melindachang.hy@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/melindachang/albio/issues"
+  },
+  "homepage": "https://github.com/melindachang/albio#readme",
+  "devDependencies": {
+    "esbuild": "^0.13.12",
+    "prettier": "^2.4.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.59.0",
+    "rollup-plugin-dts": "^4.0.1",
+    "rollup-plugin-esbuild": "^4.6.0",
+    "typescript": "^4.4.4"
+  }
+}

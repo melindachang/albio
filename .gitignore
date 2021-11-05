@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.pnpm-debug.log
+
+/*.html
+dev
+coverage
+
+docs/
