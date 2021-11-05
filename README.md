@@ -1,2 +1,2 @@
 # albio
-Astropy-esque package infrastructure for JavaScript
+Astronomy package infrastructure for JavaScript
