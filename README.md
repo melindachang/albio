@@ -1,2 +1,3 @@
-# albio
-Astronomy package infrastructure for JavaScript
+# 🚀 Albio
+
+Under construction
