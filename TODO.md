@@ -2,7 +2,7 @@
 - [ ] Parse markup
 - [ ] Parse JS
 - [ ] Create templates
-- [ ] Extract logic into different files
+- [ ] Extract logic into different files (modularity)
 
 # Research
 - [ ] What `acorn` and `code_red` do

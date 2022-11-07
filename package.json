@@ -7,7 +7,7 @@
   "typings": "dist/albio.d.ts",
   "scripts": {
     "build": "rimraf dist && rollup -c",
-    "dev": "./scripts/dev.sh",
+    "dev": "bash ./scripts/dev.sh",
     "test": "jest --silent --runInBand",
     "cleanup": "prettier --write src --parser typescript"
   },

@@ -6,15 +6,6 @@
  /_/    \_\_|_.__/|_|\___/
 */
 
-/*
-STUFF TO DO
-(build the core in one file for now and then extract the logic out later)
-
-- Parse index.html - list of tags/nodes/other stuff to be fed to Acorn and code-red
-    - Parse any HTML files explicitly linked to index.html
-    - Parse mustache stuff
-- Parse the JS file linked in a script tag, or parse any code inside of a script tag in the HTML file 
-*/
 import { readFileSync } from 'fs';
 import acorn from 'acorn';
 import { parseFragment } from 'parse5';
@@ -51,7 +42,7 @@ export const extract = (fragment: any) => {
 };
 // SCRIPT PARSER
 
-export const parseScript = (source: string) => {
+export const parseScript = (source: string) => { // NOTE: AST can be assigned to a template that is populated correctly by acorn - see acorn.ts
   const AST = acorn.parse(source, {
     sourceType: 'module',
     ecmaVersion: 12,
