@@ -6,7 +6,7 @@
   "module": "dist/albio.mjs",
   "typings": "dist/albio.d.ts",
   "scripts": {
-    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+    "build":"rimraf dist && tsc && tsc-alias",
     "dev": "ts-node src/index.ts",
     "test": "jest --silent --runInBand",
     "cleanup": "prettier --write src --parser typescript"

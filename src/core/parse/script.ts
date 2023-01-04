@@ -1,10 +1,8 @@
 import { parse } from 'acorn';
-import { Program, Node, VariableDeclaration } from 'estree';
+import { Program, Node, VariableDeclaration, Identifier } from 'estree';
 
-export function parseCode(source: string) {
-  let ast: Program;
-
-  ast = parse(source, {
+export const parseCode = (source: string) => {
+  let ast = parse(source, {
     sourceType: 'module',
     ecmaVersion: 12,
     locations: true,
@@ -13,16 +11,14 @@ export function parseCode(source: string) {
   return ast;
 }
 
-export function walk(ast: string) {
-  const program: Program = parseCode(ast);
+export const walk = (ast: Program) => {
   const properties: string[] = [];
   const residualNodes: Node[] = [];
 
-  program.body.forEach((node) => {
+  ast.body.forEach((node) => {
     if (node.type === 'ExportNamedDeclaration') {
-      let declaration: VariableDeclaration = node.declaration! as VariableDeclaration;
-      declaration.declarations.forEach((declarator: any) => {
-        properties.push(declarator.id.name);
+      (node.declaration as VariableDeclaration).declarations.forEach((declarator) => {
+        properties.push((declarator.id as Identifier).name);
       });
     } else {
       residualNodes.push(node);

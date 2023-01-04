@@ -1,12 +1,17 @@
 import { readFileSync } from 'fs';
 import { parseFragment, DefaultTreeAdapterMap } from 'parse5';
-import { DocumentFragment, ChildNode, TextNode } from 'parse5/dist/tree-adapters/default';
+import { ChildNode, DocumentFragment, TextNode } from 'parse5/dist/tree-adapters/default';
 
-export function extract(path: string) {
-  const source: string = readFileSync(path, { encoding: 'utf8' });
-  const fragment: DocumentFragment = parseFragment<DefaultTreeAdapterMap>(source);
+export const parseFile = (path: string) => {
+  const source = readFileSync(path, { encoding: 'utf8' });
+  const fragment = parseFragment<DefaultTreeAdapterMap>(source);
+
+  return fragment;
+}
+
+export const extract = (fragment: DocumentFragment) => {
   const tags: ChildNode[] = [];
-  let script: string = '';
+  let script = '';
 
   fragment.childNodes.forEach((child: ChildNode) => {
     if (child.nodeName === 'script') {

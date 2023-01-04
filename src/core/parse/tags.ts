@@ -1,99 +1,88 @@
-import { Attribute } from 'parse5/dist/common/token';
-import { EventListener, TagNode, TextTag, ElementTag, BindingTag, CommentTag } from '@/core/interfaces';
+import { Listener, TagNode, TextTag, ElementTag, BindingTag, CommentTag } from '@core/interfaces';
 import { ParentNode, ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
-export function parseHtml(tags: ChildNode[]) {
+export const parseHtml = (tags: ChildNode[]) => {
   const nodes: TagNode[] = [];
-  const eventListeners: EventListener[] = [];
+  const eventListeners: Listener[] = [];
 
   parseTags(nodes, eventListeners, 0, tags);
-
-  if (nodes.length > 0) removeTrailingWhitespace(nodes);
+  if (nodes.length > 0) pruneTrailingWhitespace(nodes);
 
   return { nodes, eventListeners };
 }
 
-export function parseTags(
-  nodes: TagNode[],
-  eventListeners: EventListener[],
-  index: number,
-  tags: ChildNode[],
-) {
+export const parseTags = (nodes: TagNode[], eventListeners: Listener[], index: number, tags: ChildNode[]) => {
   tags.forEach((tag) => {
     if (tag.nodeName === '#text') {
-      index = parseText(nodes, index, tag.parentNode, (tag as TextNode));
+      index = parseText(nodes, index, tag.parentNode, tag as TextNode);
     } else if (tag.nodeName === '#comment') {
-      index = parseComment(nodes, index, tag.parentNode, (tag as CommentNode));
+      index = parseComment(nodes, index, tag.parentNode, tag as CommentNode);
     } else {
-      index = parseElement(nodes, eventListeners, index, tag.parentNode, (tag as Element));
+      index = parseElement(nodes, eventListeners, index, tag.parentNode, tag as Element);
     }
   });
-
   return index;
 }
 
-export function parseText(nodes: TagNode[], index: number, parent: ParentNode | null, tag: TextNode) {
+export const parseText = (nodes: TagNode[], index: number, parent: ParentNode | null, tag: TextNode) => {
   let flag = tag.value;
-  let startBracket, endBracket;
+  let startCode, endCode;
 
   while (true) {
-    startBracket = flag.search('{');
+    startCode = flag.search('{');
 
-    if (startBracket === 0) {
-      endBracket = flag.search('}');
-      index = addBinding(nodes, index, parent, flag.substring(1, endBracket - 1));
-      flag = flag.substring(endBracket + 1);
+    if (startCode === 0) {
+      endCode = flag.search('}');
+      index = addBinding(nodes, index, parent, flag.substring(1, endCode - 1));
+      flag = flag.substring(endCode + 1);
       if (!flag) break;
-    } else if (startBracket < 0) {
+    } else if (startCode < 0) {
       index = addText(nodes, index, parent, flag);
       break;
     } else {
-      index = addText(nodes, index, parent, flag.substring(0, startBracket));
-      flag = flag.substring(startBracket);
+      index = addText(nodes, index, parent, flag.substring(0, startCode));
+      flag = flag.substring(startCode);
     }
   }
 
   return index;
 }
 
-export function addText(nodes: TagNode[], index: number, parent: ParentNode | null, value: string) {
+export const addText = (nodes: TagNode[], index: number, parent: ParentNode | null, value: string) => {
   if (index === 0 && value.trim() === '') return index;
 
-  let text: TextTag = {
+  nodes.push({
     index,
     type: 'Text',
     value,
     parent,
-  }
-
-  nodes.push(text);
+  } as TextTag);
 
   return index + 1;
 }
 
-export function addBinding(nodes: TagNode[], index: number, parent: ParentNode | null, name: string) {
-  let bind: BindingTag = {
+export const addBinding = (nodes: TagNode[], index: number, parent: ParentNode | null, name: string) => {
+  nodes.push({
     index,
     type: 'Binding',
     name,
     parent,
-  }
-  nodes.push(bind);
+  } as BindingTag);
 
   return index + 1;
 }
 
-export function parseElement(
+export const parseElement = (
   nodes: TagNode[],
-  eventListeners: EventListener[],
+  eventListeners: Listener[],
   index: number,
   parent: ParentNode | null,
   tag: Element,
-) {
+) => {
   const attrs: { [key: string]: string } = {};
 
   if (tag.attrs) {
-    tag.attrs.forEach((attr: Attribute) => {
+    tag.attrs.forEach((attr) => {
       if (attr.name.match(/^on:/)) {
         eventListeners.push({
           index,
@@ -106,34 +95,29 @@ export function parseElement(
     });
   }
 
-  let elem: ElementTag = {
+  nodes.push({
     index,
     type: 'Element',
     attrs,
     name: tag.nodeName,
     parent,
-  }
-
-  nodes.push(elem);
+  } as ElementTag);
 
   return parseTags(nodes, eventListeners, index + 1, tag.childNodes);
 }
 
-export function parseComment(nodes: TagNode[], index: number, parent: ParentNode | null, tag: CommentNode) {
-  let value = tag.data;
-  let comment: CommentTag = {
+export const parseComment = (nodes: TagNode[], index: number, parent: ParentNode | null, tag: CommentNode) => {
+  nodes.push({
     index,
     type: 'Comment',
     parent,
-    value
-  }
-
-  nodes.push(comment);
+    value: tag.data,
+  } as CommentTag);
 
   return index + 1;
 }
 
-export function removeTrailingWhitespace(nodes: TagNode[]) {
+export const pruneTrailingWhitespace = (nodes: TagNode[]) => {
   let i = nodes.length - 1;
   let node = nodes[i];
 

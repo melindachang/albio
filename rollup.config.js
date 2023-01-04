@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 
 const suite = (input, output, dev = false) => ({
   input,
-  plugins: [resolve({ extensions: ['.ts'] }), typescript()],
+  plugins: [resolve({ extensions: ['.ts'] }), typescript(), ],
   output,
   onwarn: () => {},
 });
