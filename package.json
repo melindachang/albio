@@ -6,8 +6,8 @@
   "module": "dist/albio.mjs",
   "typings": "dist/albio.d.ts",
   "scripts": {
-    "build": "rimraf dist && rollup -c",
-    "dev": "bash ./scripts/dev.sh",
+    "build": "tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+    "dev": "ts-node src/index.ts",
     "test": "jest --silent --runInBand",
     "cleanup": "prettier --write src --parser typescript"
   },
@@ -23,21 +23,29 @@
   },
   "homepage": "https://github.com/melindachang/albio#readme",
   "devDependencies": {
+    "@jest/types": "^29.3.1",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-strip": "^3.0.2",
+    "@rollup/plugin-typescript": "^10.0.1",
     "@swc-node/jest": "^1.5.2",
+    "@types/estree": "^1.0.0",
     "@types/jest": "^27.5.2",
+    "@types/js-beautify": "^1.13.3",
     "@types/node": "^16.11.48",
     "acorn": "^8.8.0",
-    "code-red": "^0.2.5",
     "esbuild": "^0.13.15",
-    "estree-walker": "^3.0.1",
+    "estree-walker": "^3.0.2",
     "jest": "^27.5.1",
+    "jest-cli": "^29.3.1",
     "js-beautify": "^1.14.5",
     "parse5": "^7.0.0",
+    "parse5-htmlparser2-tree-adapter": "^7.0.0",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.78.0",
-    "rollup-plugin-dts": "^4.2.2",
-    "rollup-plugin-esbuild": "^4.9.2",
-    "typescript": "^4.7.4"
+    "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.2",
+    "typescript": "^4.7.4",
+    "vite": "^4.0.4"
   }
 }

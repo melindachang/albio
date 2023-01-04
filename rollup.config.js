@@ -1,35 +1,49 @@
-import dts from 'rollup-plugin-dts';
-import esbuild from 'rollup-plugin-esbuild';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 
-const name = require('./package.json').main.replace(/\.js$/, '');
-
-const bundle = (config) => ({
-  ...config,
-  input: 'src/index.ts',
-  external: (id) => !/^[./]/.test(id),
+const suite = (input, output, dev = false) => ({
+  input,
+  plugins: [resolve({ extensions: ['.ts'] }), typescript()],
+  output,
+  onwarn: () => {},
 });
 
-export default [
-  bundle({
-    plugins: [esbuild()],
-    output: [
-      {
-        file: `${name}.js`,
-        format: 'cjs',
-        sourcemap: true,
-      },
-      {
-        file: `${name}.mjs`,
-        format: 'es',
-        sourcemap: true,
-      },
-    ],
+export const unit = ({ file, format }) => ({
+  file,
+  format,
+  name: 'Albio',
+  strict: true,
+});
+
+const devSuite = suite(
+  './src/index.ts',
+  [
+    unit({
+      file: './dist/albio.js',
+      format: 'iife',
+    }),
+  ],
+  true,
+);
+
+const prodSuite = suite('./src/index.ts', [
+  unit({
+    file: './dist/albio.esm.js',
+    format: 'esm',
   }),
-  bundle({
-    plugins: [dts()],
-    output: {
-      file: `${name}.d.ts`,
-      format: 'es',
-    },
+  unit({
+    file: './dist/albio.cjs.js',
+    format: 'cjs',
   }),
-];
+  unit({
+    file: './dist/albio.umd.js',
+    format: 'umd',
+  }),
+  unit({
+    file: './dist/albio.min.js',
+    format: 'iife',
+    minify: true,
+  }),
+]);
+
+export default [devSuite, prodSuite];
