@@ -1,39 +1,45 @@
-import { Listener, ASTNode, Binding, HTMLElement, Text } from '@core/interfaces';
-import { Node } from 'estree';
+import { ASTNode, Binding, Listener, Flag, HTMLElement, Text } from '@core/interfaces';
+import { Node, Statement } from 'estree';
+import { b, print } from 'code-red';
 
-export class Component {
+export default class Renderer {
+
   allEntities: ASTNode[] = [];
-
-  identifiers: string[] = [];
   rootEntities: ASTNode[] = [];
   childEntities: ASTNode[] = [];
-  bindings: Binding[] = [];
 
+  identifiers: string[] = [];
+  bindings: Binding[] = [];
+  reactives: Statement[] = [];
   props: string[] = [];
   listeners: Listener[] = [];
-  residualNodes: Node[] = [];
+  residuals: Node[] = [];
 
-  ast: string = '';
+  parentFlags: Flag[] = [];
 
-  constructor(nodes: ASTNode[], props: string[], listeners: Listener[], rest: Node[]) {
+  ast: Node[] = [];
+
+  constructor(nodes: ASTNode[], props: string[], reactives: Statement[], listeners: Listener[], residuals: Node[]) {
     this.allEntities = nodes;
-
-    this.identifiers = nodes.map((node) => [node.type[0], node.index].join(''));
     this.rootEntities = nodes.filter((node) => node.parent === undefined);
     this.childEntities = nodes.filter((node) => node.parent !== undefined);
-    this.bindings = nodes.filter((node) => node.type === 'Binding') as Binding[];
 
+    this.identifiers = nodes.map((node) => [node.type[0], node.index].join(''));
+    this.bindings = nodes.filter((node) => node.type === 'Binding') as Binding[];
+    this.reactives = reactives;
     this.props = props;
     this.listeners = listeners;
-    this.residualNodes = rest;
+    this.residuals = residuals;
   }
 
-  create() {
-    this.ast = `
+  // when prop updates, eval all bindings (moustache statements) that contain references to the prop, update with new value in the dom
+
+  generate() {
+    this.ast = b`
     export default function component({target, props}) {
       let {${this.props.join(',')}} = props
 
-      ${this.residualNodes}
+      ${this.residuals}
 
       let ${this.identifiers.join(',')}
 
@@ -41,39 +47,37 @@ export class Component {
         create() {
           ${this.allEntities.map((node) => this.generateNodeString(this.identifiers, node)).join('\n')}
           ${this.allEntities
-            .map((node) => this.generateAttrString(this.identifiers, node))
-            .filter((list) => list.length > 0)
-            .join('\n')}
+        .map((node) => this.generateAttrString(this.identifiers, node))
+        .filter((list) => list.length > 0)
+        .join('\n')}
           ${this.listeners
-            .map(
-              (listener) =>
-                `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${listener.handler})`,
-            )
-            .join('\n')}
+        .map(
+          (listener) =>
+            `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${listener.handler})`,
+        )
+        .join('\n')}
         },
         mount() {
           ${this.childEntities
-            .map((node) => `${this.identifiers[node.parent!.index]}.appendChild(${this.identifiers[node.index]})`)
-            .join('\n')}
+        .map((node) => `${this.identifiers[node.parent!.index]}.appendChild(${this.identifiers[node.index]})`)
+        .join('\n')}
           ${this.rootEntities.map((node) => `target.append(${this.identifiers[node.index]})`).join('\n')}
         },
         update(changes) {
           ${this.bindings
-            .map(
-              (node) =>
-                `if (changes.${node.name}) {\n${this.identifiers[node.index]}.data = ${node.name} = changes.${
-                  node.name
-                }\n}`,
-            )
-            .join('\n')}
+        .map(
+          (node) =>
+            `if (changes.${node.name}) {\n${this.identifiers[node.index]}.data = ${node.name} = changes.${node.name
+            }\n}`,
+        )
+        .join('\n')}
         },
         detach() {
           ${this.rootEntities.map((node) => `target.removeChild(${this.identifiers[node.index]})`).join('\n')}
         }
       }
     }`;
-
-    return this.ast;
+    return print(this.ast[0]).code;
   }
 
   generateNodeString(identifiers: string[], node: ASTNode): string {

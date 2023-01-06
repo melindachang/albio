@@ -27,11 +27,17 @@ export interface Comment extends BaseNode {
 
 export interface Binding extends BaseNode {
   type: 'Binding';
-  name: string;
+  data: string;
 }
 
 export interface Listener {
   index: number;
   event: string;
   handler: string;
+}
+
+export interface Flag {
+  parentNode?: ASTNode;
+  binding: Binding;
+  id: string;
 }

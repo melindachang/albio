@@ -6,16 +6,15 @@
 //  /_/    \_\_|_.__/|_|\___/
 //
 
-import { extract, parseFile } from '@compiler/parse/body';
-import { parseCode, walk } from '@compiler/parse/script';
-import { parseHtml } from '@compiler/parse/tags';
-import { Component } from './component';
-import { format } from '@compiler/utils';
+import { extract, parseFile } from '@parse/body.js';
+import { parseCode, walk } from '@parse/script.js';
+import { parseHtml } from '@parse/tags.js';
+import Renderer from '@core/Renderer.js';
 
 const x = extract(parseFile('./test.html'));
 let code = walk(parseCode(x.script));
 let doc = parseHtml(x.tags);
 
-let item = new Component(doc.nodes, code.props, doc.eventListeners, code.residualNodes);
-let formatted = format(item.create());
-console.log(formatted);
+
+let item = new Renderer(doc.nodes, code.props, code.reactives, doc.listeners, code.residuals);
+console.log(item.generate());

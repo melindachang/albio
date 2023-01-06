@@ -1,9 +1,16 @@
-import resolve from '@rollup/plugin-node-resolve';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import commonjs from '@rollup/plugin-commonjs';
 
 const suite = (input, output, dev = false) => ({
   input,
-  plugins: [resolve({ extensions: ['.ts'] }), typescript(), ],
+  plugins: [
+    commonjs(),
+    nodeResolve(),
+    typescript({
+      include: 'src/**',
+    }),
+  ],
   output,
   onwarn: () => {},
 });
@@ -27,18 +34,6 @@ const devSuite = suite(
 );
 
 const prodSuite = suite('./src/index.ts', [
-  unit({
-    file: './dist/albio.esm.js',
-    format: 'esm',
-  }),
-  unit({
-    file: './dist/albio.cjs.js',
-    format: 'cjs',
-  }),
-  unit({
-    file: './dist/albio.umd.js',
-    format: 'umd',
-  }),
   unit({
     file: './dist/albio.min.js',
     format: 'iife',

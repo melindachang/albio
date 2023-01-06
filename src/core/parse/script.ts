@@ -13,8 +13,8 @@ export const parseCode = (source: string) => {
 
 export const walk = (program: Program) => {
   const props: string[] = [];
-  const reactiveStatements: Statement[] = [];
-  const residualNodes: Node[] = [];
+  const reactives: Statement[] = [];
+  const residuals: Node[] = [];
 
   program.body.forEach((node) => {
     switch (node.type) {
@@ -25,13 +25,12 @@ export const walk = (program: Program) => {
         break;
       case 'LabeledStatement':
         if (node.label.name === '$') {
-          reactiveStatements.push(node.body);
+          reactives.push(node.body);
         }
         break;
       default:
-        residualNodes.push(node);
+        residuals.push(node);
     }
-
   });
-  return { props, reactiveStatements, residualNodes };
+  return { props, reactives, residuals };
 };
