@@ -1,4 +1,4 @@
-import { Listener, Text, HTMLElement, type ASTNode } from '@core/interfaces';
+import { Listener, Text, HTMLElement, type ASTNode } from '@compiler/interfaces';
 import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
 const parseTags = (

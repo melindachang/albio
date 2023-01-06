@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@core/*": ["./src/core/*"],
+      "@compiler/*": ["src/compiler/*"],
     },
     "lib": ["dom", "esnext"],
     "outDir": "dist",

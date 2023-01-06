@@ -6,11 +6,11 @@
 //  /_/    \_\_|_.__/|_|\___/
 //
 
-import { extract, parseFile } from '@core/parse/body';
-import { parseCode, walk } from '@core/parse/script';
-import { parseHtml } from '@core/parse/tags';
+import { extract, parseFile } from '@compiler/parse/body';
+import { parseCode, walk } from '@compiler/parse/script';
+import { parseHtml } from '@compiler/parse/tags';
 import { Component } from './component';
-import { format } from '@core/utils';
+import { format } from '@compiler/utils';
 
 const x = extract(parseFile('./test.html'));
 let code = walk(parseCode(x.script));

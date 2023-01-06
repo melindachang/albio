@@ -1,6 +1,6 @@
-import { Listener, ASTNode, Binding } from '@core/interfaces';
+import { Listener, ASTNode, Binding } from '@compiler/interfaces';
 import { Node } from 'estree';
-import { generateNodeString, generateAttrString } from '@core/compile';
+import { generateNodeString, generateAttrString } from '@compiler/compile';
 
 export class Component {
   allEntities: ASTNode[] = [];

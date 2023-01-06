@@ -1,4 +1,4 @@
-import { HTMLElement, ASTNode, Text } from '@core/interfaces';
+import { HTMLElement, ASTNode, Text } from '@compiler/interfaces';
 
 export const generateNodeString = (identifiers: string[], node: ASTNode): string => {
   const identifier = identifiers[node.index];

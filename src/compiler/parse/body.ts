@@ -15,13 +15,8 @@ export const extract = (fragment: DocumentFragment) => {
 
   fragment.childNodes.forEach((child: ChildNode) => {
     if (child.nodeName === 'script') {
-      let i = child.attrs.findIndex(attr => attr.name === 'src');
-      if (i > -1) {
-        script += readFileSync(child.attrs[i].value);
-      } else {
-        script += (child.childNodes[0] as TextNode).value;
-
-      }
+      let i = child.attrs.findIndex((attr) => attr.name === 'src');
+      script += i > -1 ? readFileSync(child.attrs[i].value) : (child.childNodes[0] as TextNode).value;
     } else {
       tags.push(child);
     }
