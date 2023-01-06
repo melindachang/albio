@@ -1,30 +1,26 @@
-import { Listener, TagNode, TextTag, ElementTag, BindingTag, CommentTag } from '@core/interfaces';
-import { ParentNode, ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
+import { Listener, Text, HTMLElement, type ASTNode } from '@core/interfaces';
+import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
-export const parseHtml = (tags: ChildNode[]) => {
-  const nodes: TagNode[] = [];
-  const eventListeners: Listener[] = [];
-
-  parseTags(nodes, eventListeners, 0, tags);
-  if (nodes.length > 0) pruneTrailingWhitespace(nodes);
-
-  return { nodes, eventListeners };
-}
-
-export const parseTags = (nodes: TagNode[], eventListeners: Listener[], index: number, tags: ChildNode[]) => {
+const parseTags = (
+  nodes: ASTNode[],
+  eventListeners: Listener[],
+  index: number,
+  tags: ChildNode[],
+  parent?: ASTNode,
+) => {
   tags.forEach((tag) => {
     if (tag.nodeName === '#text') {
-      index = parseText(nodes, index, tag.parentNode, tag as TextNode);
+      index = parseText(nodes, index, tag as TextNode, parent);
     } else if (tag.nodeName === '#comment') {
-      index = parseComment(nodes, index, tag.parentNode, tag as CommentNode);
+      index = parseComment(nodes, index, tag as CommentNode, parent);
     } else {
-      index = parseElement(nodes, eventListeners, index, tag.parentNode, tag as Element);
+      index = parseElement(nodes, eventListeners, index, parent, tag as Element);
     }
   });
   return index;
-}
+};
 
-export const parseText = (nodes: TagNode[], index: number, parent: ParentNode | null, tag: TextNode) => {
+const parseText = (nodes: ASTNode[], index: number, tag: TextNode, parent?: ASTNode) => {
   let flag = tag.value;
   let startCode, endCode;
 
@@ -33,22 +29,22 @@ export const parseText = (nodes: TagNode[], index: number, parent: ParentNode | 
 
     if (startCode === 0) {
       endCode = flag.search('}');
-      index = addBinding(nodes, index, parent, flag.substring(1, endCode - 1));
+      index = addBinding(nodes, index, flag.substring(1, endCode), parent);
       flag = flag.substring(endCode + 1);
       if (!flag) break;
     } else if (startCode < 0) {
-      index = addText(nodes, index, parent, flag);
+      index = addText(nodes, index, flag, parent);
       break;
     } else {
-      index = addText(nodes, index, parent, flag.substring(0, startCode));
+      index = addText(nodes, index, flag.substring(0, startCode), parent);
       flag = flag.substring(startCode);
     }
   }
 
   return index;
-}
+};
 
-export const addText = (nodes: TagNode[], index: number, parent: ParentNode | null, value: string) => {
+const addText = (nodes: ASTNode[], index: number, value: string, parent?: ASTNode) => {
   if (index === 0 && value.trim() === '') return index;
 
   nodes.push({
@@ -56,27 +52,27 @@ export const addText = (nodes: TagNode[], index: number, parent: ParentNode | nu
     type: 'Text',
     value,
     parent,
-  } as TextTag);
+  });
 
   return index + 1;
-}
+};
 
-export const addBinding = (nodes: TagNode[], index: number, parent: ParentNode | null, name: string) => {
+const addBinding = (nodes: ASTNode[], index: number, name: string, parent?: ASTNode) => {
   nodes.push({
     index,
     type: 'Binding',
     name,
     parent,
-  } as BindingTag);
+  });
 
   return index + 1;
-}
+};
 
-export const parseElement = (
-  nodes: TagNode[],
+const parseElement = (
+  nodes: ASTNode[],
   eventListeners: Listener[],
   index: number,
-  parent: ParentNode | null,
+  parent: ASTNode | undefined,
   tag: Element,
 ) => {
   const attrs: { [key: string]: string } = {};
@@ -95,36 +91,46 @@ export const parseElement = (
     });
   }
 
-  nodes.push({
+  let el: HTMLElement = {
     index,
     type: 'Element',
     attrs,
     name: tag.nodeName,
     parent,
-  } as ElementTag);
+  };
+  nodes.push(el);
 
-  return parseTags(nodes, eventListeners, index + 1, tag.childNodes);
-}
+  return parseTags(nodes, eventListeners, index + 1, tag.childNodes, el);
+};
 
-export const parseComment = (nodes: TagNode[], index: number, parent: ParentNode | null, tag: CommentNode) => {
+const parseComment = (nodes: ASTNode[], index: number, tag: CommentNode, parent?: ASTNode) => {
   nodes.push({
     index,
     type: 'Comment',
     parent,
     value: tag.data,
-  } as CommentTag);
+  });
 
   return index + 1;
-}
+};
 
-export const pruneTrailingWhitespace = (nodes: TagNode[]) => {
+const pruneTrailingWhitespace = (nodes: ASTNode[]) => {
   let i = nodes.length - 1;
   let node = nodes[i];
 
-  while (node.parent === null && node.type === 'Text' && (node as TextTag).value.trim() === '') {
+  while (node.parent === null && node.type === 'Text' && (node as Text).value.trim() === '') {
     nodes.splice(i, 1);
-
     i -= 1;
     node = nodes[i];
   }
-}
+};
+
+export const parseHtml = (tags: ChildNode[]) => {
+  const nodes: ASTNode[] = [];
+  const eventListeners: Listener[] = [];
+
+  parseTags(nodes, eventListeners, 0, tags);
+  if (nodes.length > 0) pruneTrailingWhitespace(nodes);
+
+  return { nodes, eventListeners };
+};

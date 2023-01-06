@@ -6,7 +6,7 @@
   "module": "dist/albio.mjs",
   "typings": "dist/albio.d.ts",
   "scripts": {
-    "build":"rimraf dist && tsc && tsc-alias",
+    "build": "rimraf dist && tsc && tsc-alias",
     "dev": "ts-node src/index.ts",
     "test": "jest --silent --runInBand",
     "cleanup": "prettier --write src --parser typescript"
@@ -28,6 +28,7 @@
     "@rollup/plugin-strip": "^3.0.2",
     "@rollup/plugin-typescript": "^10.0.1",
     "@swc-node/jest": "^1.5.2",
+    "@swc/core": "^1.3.24",
     "@types/estree": "^1.0.0",
     "@types/jest": "^27.5.2",
     "@types/js-beautify": "^1.13.3",

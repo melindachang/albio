@@ -7,7 +7,7 @@ export const parseFile = (path: string) => {
   const fragment = parseFragment<DefaultTreeAdapterMap>(source);
 
   return fragment;
-}
+};
 
 export const extract = (fragment: DocumentFragment) => {
   const tags: ChildNode[] = [];
@@ -22,4 +22,4 @@ export const extract = (fragment: DocumentFragment) => {
   });
 
   return { script, tags };
-}
+};

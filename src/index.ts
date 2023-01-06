@@ -7,11 +7,15 @@
 //
 
 import { extract, parseFile } from '@core/parse/body';
-import { parseCode, walk  } from '@core/parse/script';
+import { parseCode, walk } from '@core/parse/script';
 import { parseHtml } from '@core/parse/tags';
-
+import { Component } from './component';
+import { format } from '@core/utils';
 
 const x = extract(parseFile('./test.html'));
-console.log(walk(parseCode(x.script)));
-console.log('=================');
-console.log(parseHtml(x.tags));
+let code = walk(parseCode(x.script));
+let doc = parseHtml(x.tags);
+
+let item = new Component(doc.nodes, code.props, doc.eventListeners, code.residualNodes);
+let formatted = format(item.create());
+console.log(formatted);

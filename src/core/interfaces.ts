@@ -1,31 +1,31 @@
-import { ParentNode, ChildNode } from 'parse5/dist/tree-adapters/default';
+export type ASTNode = BaseNode | Text | HTMLElement | Binding | Comment;
 
-export interface TagNode {
+export interface BaseNode {
   index: number;
   name?: string;
   type: string;
-  parent: ParentNode | null;
-  children?: ChildNode[];
+  parent?: ASTNode;
+  children?: ASTNode[];
 }
 
-export interface TextTag extends TagNode {
+export interface Text extends BaseNode {
   type: 'Text';
   value: string;
 }
 
-export interface ElementTag extends TagNode {
+export interface HTMLElement extends BaseNode {
   type: 'Element';
   attrs?: {
     [key: string]: string;
   };
 }
 
-export interface CommentTag extends TagNode {
+export interface Comment extends BaseNode {
   type: 'Comment';
   value: string;
 }
 
-export interface BindingTag extends TagNode {
+export interface Binding extends BaseNode {
   type: 'Binding';
   name: string;
 }
