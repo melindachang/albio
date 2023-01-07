@@ -1,9 +1,9 @@
-import { ASTNode, Binding, Listener, Flag, HTMLElement, Text } from '@core/interfaces';
+import { ASTNode, Binding, Listener, Flag } from '@core/interfaces';
 import { Node, Statement } from 'estree';
-import { b, print } from 'code-red';
+import { generate_node_str, generate_attr_str } from '@utils/dom.js';
+import { b } from 'code-red';
 
 export default class Renderer {
-
   allEntities: ASTNode[] = [];
   rootEntities: ASTNode[] = [];
   childEntities: ASTNode[] = [];
@@ -36,68 +36,42 @@ export default class Renderer {
 
   generate() {
     this.ast = b`
-    export default function component({target, props}) {
-      let {${this.props.join(',')}} = props
+      import { set_data } from 'test';
 
-      ${this.residuals}
+      export default function component({target, props}) {
+        let {${this.props.join(',')}} = props
 
-      let ${this.identifiers.join(',')}
+        ${this.residuals}
 
-      return {
-        create() {
-          ${this.allEntities.map((node) => this.generateNodeString(this.identifiers, node)).join('\n')}
-          ${this.allEntities
-        .map((node) => this.generateAttrString(this.identifiers, node))
-        .filter((list) => list.length > 0)
-        .join('\n')}
-          ${this.listeners
-        .map(
-          (listener) =>
-            `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${listener.handler})`,
-        )
-        .join('\n')}
-        },
-        mount() {
-          ${this.childEntities
-        .map((node) => `${this.identifiers[node.parent!.index]}.appendChild(${this.identifiers[node.index]})`)
-        .join('\n')}
-          ${this.rootEntities.map((node) => `target.append(${this.identifiers[node.index]})`).join('\n')}
-        },
-        update(changes) {
-          ${this.bindings
-        .map(
-          (node) =>
-            `if (changes.${node.name}) {\n${this.identifiers[node.index]}.data = ${node.name} = changes.${node.name
-            }\n}`,
-        )
-        .join('\n')}
-        },
-        detach() {
-          ${this.rootEntities.map((node) => `target.removeChild(${this.identifiers[node.index]})`).join('\n')}
+        let ${this.identifiers.concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`)).join(',')}
+
+        return {
+          c() {
+            ${this.allEntities.map((node) => generate_node_str(this.identifiers, node)).join('\n')}
+            ${this.allEntities
+              .map((node) => generate_attr_str(this.identifiers, node))
+              .filter((list) => list.length > 0)
+              .join('\n')}
+            ${this.listeners
+              .map((listener) => `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${listener.handler})`)
+              .join('\n')}
+          },
+          m() {
+            ${this.childEntities.map((node) => `${this.identifiers[node.parent!.index]}.appendChild(${this.identifiers[node.index]})`).join('\n')}
+            ${this.rootEntities.map((node) => `target.append(${this.identifiers[node.index]})`).join('\n')}
+          },
+          u([stale]) {
+            ${this.bindings
+              .map(
+                (b, i) =>
+                  `if (stale[${i}] && ${this.identifiers[b.index]}_value !== (${this.identifiers[b.index]}_value = eval(${b.data}) + '')) set_data(${
+                    this.identifiers[b.index]
+                  },${this.identifiers[b.index]}_value)`,
+              )
+              .join('\n')}
+          }
         }
-      }
-    }`;
-    return print(this.ast[0]).code;
-  }
-
-  generateNodeString(identifiers: string[], node: ASTNode): string {
-    const identifier = identifiers[node.index];
-    switch (node.type) {
-      case 'Text':
-        return `${identifier} = document.createTextNode("${(node as Text).value.replace(/\n/g, '\\n')}")`;
-      case 'Binding':
-        return `${identifier} = document.createTextNode(${node.name})`;
-      default:
-        return `${identifier} = document.createElement("${node.name}")`;
-    }
-  }
-
-  generateAttrString(identifiers: string[], node: ASTNode): string[] {
-    if (!(node as HTMLElement).attrs) return [];
-
-    const identifier = identifiers[node.index];
-    return Object.entries((node as HTMLElement).attrs!).map(
-      ([name, value]) => `${identifier}.setAttribute("${name}", "${value}")`,
-    );
+      }`;
+    return this.ast;
   }
 }

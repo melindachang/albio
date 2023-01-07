@@ -1,4 +1,4 @@
-import { Listener, Text, HTMLElement, type ASTNode } from '@core/interfaces';
+import { Listener, TextTag, ElementTag, type ASTNode } from '@core/interfaces';
 import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
 const parseTags = (nodes: ASTNode[], listeners: Listener[], index: number, tags: ChildNode[], parent?: ASTNode) => {
@@ -62,13 +62,7 @@ const addBinding = (nodes: ASTNode[], index: number, name: string, parent?: ASTN
   return index + 1;
 };
 
-const parseElement = (
-  nodes: ASTNode[],
-  listeners: Listener[],
-  index: number,
-  parent: ASTNode | undefined,
-  tag: Element,
-) => {
+const parseElement = (nodes: ASTNode[], listeners: Listener[], index: number, parent: ASTNode | undefined, tag: Element) => {
   const attrs: { [key: string]: string } = {};
 
   if (tag.attrs) {
@@ -85,7 +79,7 @@ const parseElement = (
     });
   }
 
-  let el: HTMLElement = {
+  let el: ElementTag = {
     index,
     type: 'Element',
     attrs,
@@ -112,7 +106,7 @@ const pruneTrailingWhitespace = (nodes: ASTNode[]) => {
   let i = nodes.length - 1;
   let node = nodes[i];
 
-  while (node.parent === null && node.type === 'Text' && (node as Text).value.trim() === '') {
+  while (node.parent === null && node.type === 'Text' && (node as TextTag).value.trim() === '') {
     nodes.splice(i, 1);
     i -= 1;
     node = nodes[i];

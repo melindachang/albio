@@ -4,7 +4,7 @@
     "paths": {
       "@core/*": ["src/core/*"],
       "@parse/*": ["src/core/parse/*"],
-      "@render/*": ["src/core/render/*"]
+      "@utils/*": ["src/core/utils/*"],
     },
     "lib": ["dom", "esnext"],
     "outDir": "dist",

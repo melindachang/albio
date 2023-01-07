@@ -1,6 +1,6 @@
-export type ASTNode = BaseNode | Text | HTMLElement | Binding | Comment;
+export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
 
-export interface BaseNode {
+interface BaseNode {
   index: number;
   name?: string;
   type: string;
@@ -8,19 +8,19 @@ export interface BaseNode {
   children?: ASTNode[];
 }
 
-export interface Text extends BaseNode {
+export interface TextTag extends BaseNode {
   type: 'Text';
   value: string;
 }
 
-export interface HTMLElement extends BaseNode {
+export interface ElementTag extends BaseNode {
   type: 'Element';
   attrs?: {
     [key: string]: string;
   };
 }
 
-export interface Comment extends BaseNode {
+export interface CommentTag extends BaseNode {
   type: 'Comment';
   value: string;
 }
