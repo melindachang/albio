@@ -1,33 +1,15 @@
-import { ElementTag, ASTNode, TextTag, Binding, Stale } from '@core/interfaces';
+import { DirtMarker } from '@core/interfaces';
 
-export const set_data = (text: Text, data: any) => {
+export const set_data = (text: Text, data: any): void => {
   data = '' + data;
   if (text.wholeText !== data) text.data = data;
 };
 
-export const generate_node_str = (identifiers: string[], node: ASTNode): string => {
-  const identifier = identifiers[node.index];
-  switch (node.type) {
-    case 'Text':
-      return `${identifier} = text("${(node as TextTag).value.replace(/\n/g, '\\n')}")`;
-    case 'Binding':
-      return `${identifier}_value = text(${(node as Binding).data})\n${identifier} = text(${identifier}_value)`;
-    default:
-      return `${identifier} = text("${node.name}")`;
-  }
-};
-
-export const generate_attr_str = (identifiers: string[], node: ASTNode): string[] => {
-  if (!(node as ElementTag).attrs) return [];
-  const identifier = identifiers[node.index];
-  return Object.entries((node as ElementTag).attrs!).map(([name, value]) => `${identifier}.setAttribute("${name}", "${value}")`);
-};
-
-export const text = (data: string) => {
+export const text = (data: string): Text => {
   return document.createTextNode(data);
 };
 
-export const check_stale_deps = (stale: Stale, deps: string[]): boolean => {
-  if (stale === null) return false;
-  return Object.keys(stale).some((key) => deps.indexOf(key) > -1);
+export const check_dirty_deps = (dirt: DirtMarker, deps: string[]): boolean => {
+  if (dirt === null) return false;
+  return Object.keys(dirt).some((key) => deps.indexOf(key) > -1);
 };

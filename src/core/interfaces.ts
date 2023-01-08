@@ -37,6 +37,6 @@ export interface Listener {
   handler: string;
 }
 
-export type Stale = null | {
+export type DirtMarker = null | {
   [key: string]: boolean;
 };

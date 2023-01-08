@@ -1,5 +1,5 @@
 import { parse } from 'acorn';
-import { Program, Node, VariableDeclaration, Identifier, Statement } from 'estree';
+import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
 
 export const parseCode = (source: string) => {
   let program = parse(source, {
@@ -11,16 +11,16 @@ export const parseCode = (source: string) => {
   return program;
 };
 
-export const walk = (program: Program) => {
-  const props: string[] = [];
-  const reactives: Statement[] = [];
-  const residuals: Node[] = [];
+export const extractScripts = (ast: Program) => {
+  let props: Set<string> = new Set();
+  let reactives: Statement[] = [];
+  let residuals: Node[] = [];
 
-  program.body.forEach((node) => {
+  ast.body.forEach((node) => {
     switch (node.type) {
       case 'ExportNamedDeclaration':
         (node.declaration as VariableDeclaration).declarations.forEach((declarator) => {
-          props.push((declarator.id as Identifier).name);
+          props.add((declarator.id as Identifier).name);
         });
         break;
       case 'LabeledStatement':
@@ -32,5 +32,6 @@ export const walk = (program: Program) => {
         residuals.push(node);
     }
   });
+
   return { props, reactives, residuals };
 };

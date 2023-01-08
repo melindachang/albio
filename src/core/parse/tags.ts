@@ -1,7 +1,13 @@
 import { Listener, TextTag, ElementTag, type ASTNode } from '@core/interfaces';
 import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
-const parseTags = (nodes: ASTNode[], listeners: Listener[], index: number, tags: ChildNode[], parent?: ASTNode) => {
+const parseTags = (
+  nodes: ASTNode[],
+  listeners: Listener[],
+  index: number,
+  tags: ChildNode[],
+  parent?: ASTNode,
+) => {
   tags.forEach((tag) => {
     if (tag.nodeName === '#text') {
       index = parseText(nodes, index, tag as TextNode, parent);
@@ -62,7 +68,13 @@ const addBinding = (nodes: ASTNode[], index: number, data: string, parent?: ASTN
   return index + 1;
 };
 
-const parseElement = (nodes: ASTNode[], listeners: Listener[], index: number, parent: ASTNode | undefined, tag: Element) => {
+const parseElement = (
+  nodes: ASTNode[],
+  listeners: Listener[],
+  index: number,
+  parent: ASTNode | undefined,
+  tag: Element,
+) => {
   const attrs: { [key: string]: string } = {};
 
   if (tag.attrs) {

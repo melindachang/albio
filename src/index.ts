@@ -6,14 +6,16 @@
 //  /_/    \_\_|_.__/|_|\___/
 //
 
-import { extract, parseFile } from '@parse/body.js';
-import { parseCode, walk } from '@parse/script.js';
+import { extractFragment, parseFile } from '@parse/body.js';
+import { parseCode, extractScripts } from '@parse/script.js';
 import { parseHtml } from '@parse/tags.js';
 import Renderer from '@core/Renderer.js';
+import { print } from 'code-red';
+import { Node } from 'estree';
 
-const x = extract(parseFile('./test.html'));
-let code = walk(parseCode(x.script));
+const x = extractFragment(parseFile('./test.html'));
+let code: any = extractScripts(parseCode(x.script));
 let doc = parseHtml(x.tags);
 
 let item = new Renderer(doc.nodes, code.props, code.reactives, doc.listeners, code.residuals);
-console.log(item.generate());
+console.log(print(item.generate() as any as Node).code);
