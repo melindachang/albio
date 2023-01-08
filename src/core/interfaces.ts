@@ -37,8 +37,6 @@ export interface Listener {
   handler: string;
 }
 
-export interface Flag {
-  parentNode?: ASTNode;
-  binding: Binding;
-  id: string;
-}
+export type Stale = null | {
+  [key: string]: boolean;
+};

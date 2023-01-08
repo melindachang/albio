@@ -1,4 +1,4 @@
-import { ElementTag, ASTNode, TextTag, Binding } from '@core/interfaces';
+import { ElementTag, ASTNode, TextTag, Binding, Stale } from '@core/interfaces';
 
 export const set_data = (text: Text, data: any) => {
   data = '' + data;
@@ -25,4 +25,9 @@ export const generate_attr_str = (identifiers: string[], node: ASTNode): string[
 
 export const text = (data: string) => {
   return document.createTextNode(data);
+};
+
+export const check_stale_deps = (stale: Stale, deps: string[]): boolean => {
+  if (stale === null) return false;
+  return Object.keys(stale).some((key) => deps.indexOf(key) > -1);
 };

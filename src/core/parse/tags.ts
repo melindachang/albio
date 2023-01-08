@@ -51,11 +51,11 @@ const addText = (nodes: ASTNode[], index: number, value: string, parent?: ASTNod
   return index + 1;
 };
 
-const addBinding = (nodes: ASTNode[], index: number, name: string, parent?: ASTNode) => {
+const addBinding = (nodes: ASTNode[], index: number, data: string, parent?: ASTNode) => {
   nodes.push({
     index,
     type: 'Binding',
-    data: name,
+    data,
     parent,
   });
 
