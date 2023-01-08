@@ -28,6 +28,7 @@ export interface CommentTag extends BaseNode {
 export interface Binding extends BaseNode {
   type: 'Binding';
   data: string;
+  deps: string[];
 }
 
 export interface Listener {
