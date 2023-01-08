@@ -3,6 +3,7 @@ dist/
 .pnpm-debug.log
 
 /*.html
+/*.js
 dev
 coverage
 

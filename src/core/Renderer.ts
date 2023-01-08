@@ -107,7 +107,7 @@ export default class Renderer {
                 (b) =>
                   `$deps = [${b.deps.map(
                     (d) => `\"${d}\"`,
-                  )}]\nif (check_dirty_deps(dirty, $deps) && ${
+                  )}]\nif (check_dirty_deps($dirty, $deps) && ${
                     this.identifiers[b.index]
                   }_value !== (${this.identifiers[b.index]}_value = eval(${
                     b.data
@@ -137,7 +137,7 @@ export default class Renderer {
           (node as Binding).data
         })\n${identifier} = text(${identifier}_value)`;
       default:
-        return `${identifier} = text("${node.name}")`;
+        return `${identifier} = document.createElement("${node.name}")`;
     }
   }
 
