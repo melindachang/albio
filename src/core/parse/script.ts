@@ -1,7 +1,9 @@
+import { Props } from '@core/interfaces';
 import { parse } from 'acorn';
+import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
 
-export const parseCode = (source: string) => {
+export function parseCode(source: string) {
   let program = parse(source, {
     sourceType: 'module',
     ecmaVersion: 12,
@@ -9,10 +11,10 @@ export const parseCode = (source: string) => {
   }) as any as Program;
 
   return program;
-};
+}
 
-export const extractScripts = (ast: Program) => {
-  let props: Set<string> = new Set();
+export function extractScripts(ast: Program) {
+  let props: Props = {};
   let reactives: Statement[] = [];
   let residuals: Node[] = [];
 
@@ -20,7 +22,7 @@ export const extractScripts = (ast: Program) => {
     switch (node.type) {
       case 'ExportNamedDeclaration':
         (node.declaration as VariableDeclaration).declarations.forEach((declarator) => {
-          props.add((declarator.id as Identifier).name);
+          props[(declarator.id as Identifier).name] = print(x`${declarator.init}`).code;
         });
         break;
       case 'LabeledStatement':
@@ -34,4 +36,4 @@ export const extractScripts = (ast: Program) => {
   });
 
   return { props, reactives, residuals };
-};
+}

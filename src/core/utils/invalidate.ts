@@ -16,9 +16,9 @@ export function $invalidate(renderer: Renderer, rawExpression: string): any {
   [...dependencies].forEach((d) => (renderer.dirty![d] = true));
 
   return eval(print(expression).code);
-};
+}
 
 export function fetch_object(node: Node): Identifier {
   while (node.type === 'MemberExpression') node = node.object;
   return node as Identifier;
-};
+}

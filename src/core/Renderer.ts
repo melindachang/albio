@@ -1,7 +1,16 @@
-import { type ASTNode, Binding, Listener, DirtMarker, ElementTag, TextTag } from '@core/interfaces';
+import {
+  type ASTNode,
+  Binding,
+  Listener,
+  DirtMarker,
+  ElementTag,
+  TextTag,
+  Props,
+} from '@core/interfaces';
 import { Identifier, Node, Statement } from 'estree';
 import { b } from 'code-red';
 import jsep from 'jsep';
+import util from 'util';
 
 export default class Renderer {
   all_entities: ASTNode[];
@@ -11,7 +20,7 @@ export default class Renderer {
   identifiers: string[];
   bindings: Binding[];
   reactive_blocks: Statement[];
-  props: Set<string>;
+  props: Props;
   listeners: Listener[];
   residual_nodes: Node[];
 
@@ -21,7 +30,7 @@ export default class Renderer {
 
   constructor(
     nodes: ASTNode[],
-    props: Set<string>,
+    props: Props,
     reactive_blocks: Statement[],
     listeners: Listener[],
     residual_nodes: Node[],
@@ -49,8 +58,11 @@ export default class Renderer {
     this.ast = b`
       import { set_data, text, check_dirty_deps } from 'test';
 
-      export default function component({target, props}) {
-        let {${[...this.props].join(',')}} = props
+      export default function render({target}) {
+        let {${Object.keys(this.props).join(',')}} = ${util.inspect(
+      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
+    )}
+        let $deps
 
         ${this.residual_nodes}
 
@@ -89,13 +101,13 @@ export default class Renderer {
               .map((node) => `target.append(${this.identifiers[node.index]})`)
               .join('\n')}
           },
-          u(dirty) {
+          u($dirty) {
             ${this.bindings
               .map(
                 (b) =>
-                  `let ${this.identifiers[b.index]}_deps = [${b.deps.map(
+                  `$deps = [${b.deps.map(
                     (d) => `\"${d}\"`,
-                  )}]\nif (check_dirty_deps(dirty, ${this.identifiers[b.index]}_deps) && ${
+                  )}]\nif (check_dirty_deps(dirty, $deps) && ${
                     this.identifiers[b.index]
                   }_value !== (${this.identifiers[b.index]}_value = eval(${
                     b.data
@@ -110,10 +122,10 @@ export default class Renderer {
     return this.ast;
   }
 
-  // renderer_invalidate(rawExpression: string) {
-  //   let expression: Node = x`${rawExpression}`;
-  //   return x`$invalidate("${expression}")`;
-  // }
+  //hacky
+  destringify(str: string): string {
+    return eval(`(function() {return ${str}})()`);
+  }
 
   generate_node_str(identifiers: string[], node: ASTNode): string {
     const identifier = identifiers[node.index];

@@ -1,13 +1,13 @@
 import { readFileSync } from 'fs';
-import { parseFragment, DefaultTreeAdapterMap } from 'parse5';
+import { parseFragment } from 'parse5';
 import { ChildNode, DocumentFragment, TextNode } from 'parse5/dist/tree-adapters/default';
 
-export const parseFile = (path: string) => {
+export function parseFile(path: string) {
   const source = readFileSync(path, { encoding: 'utf8' });
-  const fragment = parseFragment<DefaultTreeAdapterMap>(source);
+  const fragment = parseFragment(source);
 
   return fragment;
-};
+}
 
 export const extractFragment = (fragment: DocumentFragment) => {
   const tags: ChildNode[] = [];

@@ -27,8 +27,13 @@ export interface CommentTag extends BaseNode {
 
 export interface Binding extends BaseNode {
   type: 'Binding';
+  default_value: string;
   data: string;
   deps: string[];
+}
+
+export interface Props {
+  [key: string]: any;
 }
 
 export interface Listener {

@@ -1,13 +1,13 @@
 import { Listener, TextTag, ElementTag, type ASTNode } from '@core/interfaces';
 import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
-const parseTags = (
+export function parseTags(
   nodes: ASTNode[],
   listeners: Listener[],
   index: number,
   tags: ChildNode[],
   parent?: ASTNode,
-) => {
+) {
   tags.forEach((tag) => {
     if (tag.nodeName === '#text') {
       index = parseText(nodes, index, tag as TextNode, parent);
@@ -18,9 +18,9 @@ const parseTags = (
     }
   });
   return index;
-};
+}
 
-const parseText = (nodes: ASTNode[], index: number, tag: TextNode, parent?: ASTNode) => {
+export function parseText(nodes: ASTNode[], index: number, tag: TextNode, parent?: ASTNode) {
   let flag = tag.value;
   let startCode, endCode;
 
@@ -42,9 +42,9 @@ const parseText = (nodes: ASTNode[], index: number, tag: TextNode, parent?: ASTN
   }
 
   return index;
-};
+}
 
-const addText = (nodes: ASTNode[], index: number, value: string, parent?: ASTNode) => {
+export function addText(nodes: ASTNode[], index: number, value: string, parent?: ASTNode) {
   if (index === 0 && value.trim() === '') return index;
 
   nodes.push({
@@ -55,9 +55,9 @@ const addText = (nodes: ASTNode[], index: number, value: string, parent?: ASTNod
   });
 
   return index + 1;
-};
+}
 
-const addBinding = (nodes: ASTNode[], index: number, data: string, parent?: ASTNode) => {
+export function addBinding(nodes: ASTNode[], index: number, data: string, parent?: ASTNode) {
   nodes.push({
     index,
     type: 'Binding',
@@ -66,16 +66,16 @@ const addBinding = (nodes: ASTNode[], index: number, data: string, parent?: ASTN
   });
 
   return index + 1;
-};
+}
 
-const parseElement = (
+export function parseElement(
   nodes: ASTNode[],
   listeners: Listener[],
   index: number,
   parent: ASTNode | undefined,
   tag: Element,
-) => {
-  const attrs: { [key: string]: string } = {};
+) {
+  let attrs: { [key: string]: string } = {};
 
   if (tag.attrs) {
     tag.attrs.forEach((attr) => {
@@ -101,9 +101,9 @@ const parseElement = (
   nodes.push(el);
 
   return parseTags(nodes, listeners, index + 1, tag.childNodes, el);
-};
+}
 
-const parseComment = (nodes: ASTNode[], index: number, tag: CommentNode, parent?: ASTNode) => {
+export function parseComment(nodes: ASTNode[], index: number, tag: CommentNode, parent?: ASTNode) {
   nodes.push({
     index,
     type: 'Comment',
@@ -112,9 +112,9 @@ const parseComment = (nodes: ASTNode[], index: number, tag: CommentNode, parent?
   });
 
   return index + 1;
-};
+}
 
-const pruneTrailingWhitespace = (nodes: ASTNode[]) => {
+export function pruneTrailingWhitespace(nodes: ASTNode[]) {
   let i = nodes.length - 1;
   let node = nodes[i];
 
@@ -123,9 +123,9 @@ const pruneTrailingWhitespace = (nodes: ASTNode[]) => {
     i -= 1;
     node = nodes[i];
   }
-};
+}
 
-export const parseHtml = (tags: ChildNode[]) => {
+export function parseHtml(tags: ChildNode[]) {
   const nodes: ASTNode[] = [];
   const listeners: Listener[] = [];
 
@@ -133,4 +133,4 @@ export const parseHtml = (tags: ChildNode[]) => {
   if (nodes.length > 0) pruneTrailingWhitespace(nodes);
 
   return { nodes, listeners };
-};
+}
