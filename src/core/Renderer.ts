@@ -60,7 +60,7 @@ export default class Renderer {
     walk(ast, {
       enter(node: any) {
         if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
-          this.replace(x`$$invalidate(test, ${print(x`${node}`).code})`);
+          this.replace(x`$$invalidate($$dirty, ${print(x`${node}`).code}, updateComponent)`);
         }
       },
     });
@@ -68,13 +68,12 @@ export default class Renderer {
 
   generate(): Node[] {
     this.ast = b`
-      import { $$invalidate, set_data, text, check_dirty_deps } from 'test';
+      import { $$invalidate, set_data, text, check_dirty_deps } from 'albio/internals';
 
-      export default function render({t}) {
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
     )}
-        let $$deps
+        let $$dirty = {}
 
         ${this.residualNodes}
 
@@ -82,8 +81,7 @@ export default class Renderer {
           .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
           .join(',')}
 
-        return {
-          c() {
+         export function registerComponent() {
             ${this.allEntities
               .map((node) => this.generateNodeStr(this.identifiers, node))
               .join('\n')}
@@ -99,8 +97,8 @@ export default class Renderer {
                   })`,
               )
               .join('\n')}
-          },
-          m() {
+          }
+          export function mountComponent(target) {
             ${this.childEntities
               .map(
                 (node) =>
@@ -110,10 +108,11 @@ export default class Renderer {
               )
               .join('\n')}
             ${this.rootEntities
-              .map((node) => `t.append(${this.identifiers[node.index]})`)
+              .map((node) => `target.append(${this.identifiers[node.index]})`)
               .join('\n')}
-          },
-          u($$dirty) {
+          }
+          export function updateComponent() {
+            let $$deps
             ${this.bindings
               .map(
                 (b) =>
@@ -128,9 +127,8 @@ export default class Renderer {
                   }_value)`,
               )
               .join('\n')}
-          }
-        }
-      }`;
+            $$dirty = {}
+          }`;
     return this.ast;
   }
 

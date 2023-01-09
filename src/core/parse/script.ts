@@ -22,7 +22,9 @@ export function extractScripts(ast: Program) {
     switch (node.type) {
       case 'ExportNamedDeclaration':
         (node.declaration as VariableDeclaration).declarations.forEach((declarator) => {
-          props[(declarator.id as Identifier).name] = declarator.init ? print(x`${declarator.init}`).code : undefined;
+          props[(declarator.id as Identifier).name] = declarator.init
+            ? print(x`${declarator.init}`).code
+            : undefined;
         });
         break;
       case 'LabeledStatement':

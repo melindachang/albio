@@ -1,18 +1,20 @@
 // import { Node, Identifier } from 'estree';
 
-import Renderer from '@core/Renderer';
+import { DirtMarker } from '@core/interfaces';
+import { scheduleUpdate } from '@core/schedule.js';
 import { print } from 'code-red';
 import { AssignmentExpression, Identifier, Node } from 'estree';
 import { extract_names } from 'periscopic';
 
-export function $$invalidate(renderer: Renderer, expression: Node): any {
-
+export function $$invalidate(dirty: DirtMarker, expression: Node, update: () => void): any {
   let dependencies: Set<string> = new Set();
   extract_names(fetch_object((expression as AssignmentExpression).left)).forEach((name) =>
     dependencies.add(name),
   );
 
-  [...dependencies].forEach((d) => (renderer.dirty![d] = true));
+  [...dependencies].forEach((d) => (dirty![d] = true));
+
+  scheduleUpdate(update);
 
   return eval(print(expression).code);
 }
