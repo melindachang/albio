@@ -6,10 +6,10 @@
 //  /_/    \_\_|_.__/|_|\___/
 //
 
-import { extractFragment, parseFile } from '@parse/body.js';
-import { parseCode, extractScripts } from '@parse/script.js';
-import { parseHtml } from '@parse/tags.js';
-import Renderer from '@core/Renderer.js';
+import { extractFragment, parseFile } from './parse/body.js';
+import { parseCode, extractScripts } from './parse/script.js';
+import { parseHtml } from './parse/tags.js';
+import Renderer from './Renderer.js';
 import { print } from 'code-red';
 import { Node } from 'estree';
 

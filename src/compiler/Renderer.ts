@@ -1,12 +1,4 @@
-import {
-  type ASTNode,
-  Binding,
-  Listener,
-  DirtMarker,
-  ElementTag,
-  TextTag,
-  Props,
-} from '@core/interfaces';
+import { type ASTNode, Binding, Listener, ElementTag, TextTag, Props } from './interfaces';
 import { Identifier, Node, Statement } from 'estree';
 import { b, x, print } from 'code-red';
 import jsep from 'jsep';
@@ -27,8 +19,6 @@ export default class Renderer {
 
   ast: Node[];
 
-  dirty: DirtMarker;
-
   constructor(
     nodes: ASTNode[],
     props: Props,
@@ -48,7 +38,6 @@ export default class Renderer {
     this.residualNodes = residualNodes;
 
     this.ast = [];
-    this.dirty = null;
 
     this.populateDeps(this.bindings);
     this.invalidateResiduals(this.residualNodes as any as Node);
@@ -73,7 +62,7 @@ export default class Renderer {
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
     )}
-        let $$dirty = {}
+        let $$dirty = null
 
         ${this.residualNodes}
 
@@ -127,7 +116,7 @@ export default class Renderer {
                   }_value)`,
               )
               .join('\n')}
-            $$dirty = {}
+            $$dirty = null
           }`;
     return this.ast;
   }

@@ -1,4 +1,4 @@
-import { DirtMarker } from '@core/interfaces';
+import { DirtMarker } from '../interfaces';
 
 export function set_data(text: Text, data: any): void {
   data = '' + data;

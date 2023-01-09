@@ -1,7 +1,7 @@
 // import { Node, Identifier } from 'estree';
 
-import { DirtMarker } from '@core/interfaces';
-import { scheduleUpdate } from '@core/schedule.js';
+import { DirtMarker } from '../interfaces';
+import { scheduleUpdate } from 'src/runtime/schedule.js';
 import { print } from 'code-red';
 import { AssignmentExpression, Identifier, Node } from 'estree';
 import { extract_names } from 'periscopic';

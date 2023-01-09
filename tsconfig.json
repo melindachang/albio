@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@core/*": ["src/core/*"],
-      "@parse/*": ["src/core/parse/*"],
-    },
     "lib": ["dom", "esnext"],
     "outDir": "dist",
     "skipLibCheck": true,

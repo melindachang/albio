@@ -42,6 +42,3 @@ export interface Listener {
   handler: string;
 }
 
-export type DirtMarker = null | {
-  [key: string]: boolean;
-};

@@ -1,4 +1,4 @@
-import { Props } from '@core/interfaces';
+import { Props } from '../interfaces';
 import { parse } from 'acorn';
 import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
