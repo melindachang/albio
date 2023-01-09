@@ -1,12 +1,11 @@
 // import { Node, Identifier } from 'estree';
 
 import Renderer from '@core/Renderer';
-import { x, print } from 'code-red';
+import { print } from 'code-red';
 import { AssignmentExpression, Identifier, Node } from 'estree';
 import { extract_names } from 'periscopic';
 
-export function $invalidate(renderer: Renderer, rawExpression: string): any {
-  let expression: Node = x`${rawExpression}`;
+export function $$invalidate(renderer: Renderer, expression: Node): any {
 
   let dependencies: Set<string> = new Set();
   extract_names(fetch_object((expression as AssignmentExpression).left)).forEach((name) =>
