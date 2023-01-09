@@ -5,42 +5,44 @@ import jsep from 'jsep';
 import util from 'util';
 import { walk } from 'estree-walker';
 
-export default class Renderer {
+interface CompilerParams {
+  nodes: ASTNode[];
+  listeners: Listener[];
+  props: Props;
+  reactives: Statement[];
+  residuals: Node[];
+}
+
+export default class Compiler {
   allEntities: ASTNode[];
   rootEntities: ASTNode[];
   childEntities: ASTNode[];
 
   identifiers: string[];
   bindings: Binding[];
-  reactiveBlocks: Statement[];
+  reactives: Statement[];
   props: Props;
   listeners: Listener[];
-  residualNodes: Node[];
+  residuals: Node[];
 
   ast: Node[];
 
-  constructor(
-    nodes: ASTNode[],
-    props: Props,
-    reactiveBlocks: Statement[],
-    listeners: Listener[],
-    residualNodes: Node[],
-  ) {
-    this.allEntities = nodes;
-    this.rootEntities = nodes.filter((node) => node.parent === undefined);
-    this.childEntities = nodes.filter((node) => node.parent !== undefined);
+  constructor(parsed: CompilerParams) {
+    this.allEntities = parsed.nodes;
+    this.rootEntities = parsed.nodes.filter((node) => node.parent === undefined);
+    this.childEntities = parsed.nodes.filter((node) => node.parent !== undefined);
 
-    this.identifiers = nodes.map((node) => [node.type[0], node.index].join(''));
-    this.bindings = nodes.filter((node) => node.type === 'Binding') as Binding[];
-    this.reactiveBlocks = reactiveBlocks;
-    this.props = props;
-    this.listeners = listeners;
-    this.residualNodes = residualNodes;
+    this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
+    this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
+    this.reactives = parsed.reactives;
+    this.props = parsed.props;
+    this.listeners = parsed.listeners;
+    this.residuals = parsed.residuals;
 
     this.ast = [];
 
     this.populateDeps(this.bindings);
-    this.invalidateResiduals(this.residualNodes as any as Node);
+    this.invalidateResiduals(this.residuals as any as Node);
   }
 
   // TODO messy
@@ -64,7 +66,7 @@ export default class Renderer {
     )}
         let $$dirty = null
 
-        ${this.residualNodes}
+        ${this.residuals}
 
         let ${this.identifiers
           .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))

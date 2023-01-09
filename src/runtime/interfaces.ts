@@ -1,5 +1,3 @@
-
 export type DirtMarker = null | {
-    [key: string]: boolean;
-  };
-  
+  [key: string]: boolean;
+};

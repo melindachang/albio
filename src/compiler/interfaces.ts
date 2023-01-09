@@ -41,4 +41,3 @@ export interface Listener {
   event: string;
   handler: string;
 }
-

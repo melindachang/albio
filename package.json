@@ -1,22 +1,57 @@
 {
   "name": "albio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "🚀 Tiny compiler-powered reactivity library for sensible web apps",
-  "main": "dist/albio.js",
-  "module": "dist/albio.mjs",
-  "type": "module",
-  "typings": "dist/albio.d.ts",
+  "main": "index",
+  "module": "index.mjs",
+  "files": [
+    "compiler.*",
+    "index.*",
+    "internal"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./types/runtime/index.d.ts",
+      "browser": {
+        "import": "./index.mjs",
+        "require": "./index.js"
+      },
+      "import": "./index.mjs",
+      "require": "./index.js"
+    },
+    "./compiler": {
+      "types": "./types/compiler/index.d.ts",
+      "import": "./compiler.mjs",
+      "require": "./compiler.js"
+    },
+    "./internal": {
+      "types": "./types/runtime/internal/index.d.ts",
+      "import": "./internal/index.mjs",
+      "require": "./internal/index.js"
+    }
+  },
+  "engines": {
+    "node": ">= 8"
+  },
   "scripts": {
-    "build": "rimraf dist && tsc && tsc-alias",
-    "dev": "ts-node src/index.ts",
+    "build": "rollup -c",
+    "dev": "rollup -cw",
     "test": "jest --silent --runInBand",
-    "cleanup": "prettier --write src --parser typescript"
+    "cleanup": "prettier --write src --parser typescript",
+    "lint": "eslint \"{src,test}/**/*.{ts,js}\" --cache"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/melindachang/albio.git"
   },
-  "keywords": [],
+  "keywords": [
+    "framework",
+    "library",
+    "templating",
+    "reactivity",
+    "UI"
+  ],
   "author": "Melinda Chang <melindachang.hy@gmail.com>",
   "license": "MIT",
   "bugs": {
@@ -26,8 +61,11 @@
   "devDependencies": {
     "@jest/types": "^29.3.1",
     "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-replace": "^5.0.2",
     "@rollup/plugin-strip": "^3.0.2",
+    "@rollup/plugin-sucrase": "^5.0.1",
     "@rollup/plugin-typescript": "^10.0.1",
     "@swc-node/jest": "^1.5.2",
     "@swc/core": "^1.3.24",
@@ -36,7 +74,6 @@
     "@types/js-beautify": "^1.13.3",
     "@types/node": "^16.11.48",
     "acorn": "^8.8.0",
-    "code-red": "^0.2.5",
     "esbuild": "^0.13.15",
     "estree-walker": "^3.0.2",
     "jest": "^27.5.1",
@@ -44,12 +81,14 @@
     "jsep": "^1.3.8",
     "parse5": "^7.0.0",
     "parse5-htmlparser2-tree-adapter": "^7.0.0",
-    "periscopic": "^3.0.4",
     "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
     "rollup": "^2.78.0",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.2",
     "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "code-red": "^0.2.5",
+    "periscopic": "^3.0.4"
   }
 }

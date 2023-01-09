@@ -1,21 +1,21 @@
 {
-  "compilerOptions": {
-    "baseUrl": ".",
-    "lib": ["dom", "esnext"],
-    "outDir": "dist",
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "module": "esnext",
-    "target": "esnext",
-    "allowSyntheticDefaultImports": true,
-    "declarationDir": "dist",
-    "esModuleInterop": true,
-    "noUnusedParameters": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
-    "declaration": true,
-    "strict": true
-  },
-  "include": ["./src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+	"compilerOptions": {
+		"rootDir": "src",
+		"lib": ["es2017"],
+		"target": "es2017",
+		"declaration": true,
+		"declarationDir": "types",
+		"noEmitOnError": true,
+		"noErrorTruncation": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"stripInternal": true,
+		"noImplicitThis": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"typeRoots": ["./node_modules/@types"]
+	},
+	"include": [],
 }

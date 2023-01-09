@@ -1,44 +1,111 @@
-import nodeResolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
+import fs from 'fs';
+import replace from '@rollup/plugin-replace';
+import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import sucrase from '@rollup/plugin-sucrase';
+import typescript from '@rollup/plugin-typescript';
+import pkg from './package.json';
 
-const suite = (input, output, dev = false) => ({
-  input,
-  plugins: [
-    commonjs(),
-    nodeResolve(),
-    typescript({
+const is_publish = !!process.env.PUBLISH;
+
+const ts_plugin = is_publish
+  ? typescript({
       include: 'src/**',
-    }),
-  ],
-  output,
-  onwarn: () => {},
-});
+      typescript: require('typescript'),
+    })
+  : sucrase({
+      transforms: ['typescript'],
+    });
 
-export const unit = ({ file, format }) => ({
-  file,
-  format,
-  name: 'Albio',
-  strict: true,
-});
+const external = (id) => id.startsWith('albio/');
 
-const devSuite = suite(
-  './src/index.ts',
-  [
-    unit({
-      file: './dist/albio.js',
-      format: 'iife',
-    }),
-  ],
-  true,
-);
+export default [
+  {
+    input: `src/runtime/index.ts`,
+    output: [
+      {
+        file: `index.mjs`,
+        format: 'esm',
+        paths: (id) => id.startsWith('albio/') && `${id.replace('albio', '.')}/index.mjs`,
+      },
+      {
+        file: `index.js`,
+        format: 'cjs',
+        paths: (id) => id.startsWith('albio/') && `${id.replace('albio', '.')}/index.js`,
+      },
+    ],
+    external,
+    plugins: [ts_plugin],
+  },
 
-const prodSuite = suite('./src/index.ts', [
-  unit({
-    file: './dist/albio.min.js',
-    format: 'iife',
-    minify: true,
-  }),
-]);
+  ...fs
+    .readdirSync('src/runtime')
+    .filter((dir) => fs.statSync(`src/runtime/${dir}`).isDirectory())
+    .map((dir) => ({
+      input: `src/runtime/${dir}/index.ts`,
+      output: [
+        {
+          file: `${dir}/index.mjs`,
+          format: 'esm',
+          paths: (id) => id.startsWith('albio/') && `${id.replace('albio', '..')}/index.mjs`,
+        },
+        {
+          file: `${dir}/index.js`,
+          format: 'cjs',
+          paths: (id) => id.startsWith('albio/') && `${id.replace('albio', '..')}/index.js`,
+        },
+      ],
+      external,
+      plugins: [
+        replace({
+          __VERSION__: pkg.version,
+        }),
+        ts_plugin,
+        {
+          writeBundle() {
+            fs.writeFileSync(
+              `${dir}/package.json`,
+              JSON.stringify(
+                {
+                  main: './index',
+                  module: './index.mjs',
+                },
+                null,
+                '  ',
+              ),
+            );
+          },
+        },
+      ],
+    })),
 
-export default [devSuite, prodSuite];
+  {
+    input: 'src/compiler/index.ts',
+    plugins: [
+      replace({
+        __VERSION__: pkg.version,
+      }),
+      resolve(),
+      commonjs({
+        include: ['node_modules/**'],
+      }),
+      json(),
+      ts_plugin,
+    ],
+    output: [
+      {
+        file: 'compiler.js',
+        format: 'cjs',
+        name: 'albio',
+        sourcemap: true,
+      },
+      {
+        file: 'compiler.mjs',
+        format: 'esm',
+        name: 'albio',
+        sourcemap: true,
+      },
+    ],
+  },
+];

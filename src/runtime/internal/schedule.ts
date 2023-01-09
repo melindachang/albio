@@ -11,9 +11,9 @@ export function scheduleUpdate(update: () => void): void {
 }
 
 export function flush(): void {
-    while (workQueue.length > 0) {
-        const work = workQueue.shift();
-        if (work) work();
-    }
-    update_scheduled = false;
+  while (workQueue.length > 0) {
+    const work = workQueue.shift();
+    if (work) work();
+  }
+  update_scheduled = false;
 }
