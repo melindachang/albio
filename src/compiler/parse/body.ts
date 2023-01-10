@@ -15,9 +15,6 @@ export const extractFragment = (fragment: DocumentFragment) => {
 
   fragment.childNodes.forEach((child: ChildNode) => {
     child.nodeName === 'script' ? script.push(child) : tags.push(child);
-    // let i = child.attrs.findIndex((attr) => attr.name === 'src');
-    // script +=
-    //   i > -1 ? readFileSync(child.attrs[i].value) : (child.childNodes[0] as TextNode).value;
   });
 
   return { script, tags };
