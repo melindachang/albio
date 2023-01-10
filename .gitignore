@@ -15,6 +15,5 @@ _actual*.*
 _output
 /types
 .eslintcache
-/*.js
 /*.html
 dist
