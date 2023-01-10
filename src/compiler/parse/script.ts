@@ -20,13 +20,16 @@ export function parseCode(scripts: Element[] | string) {
       }
     });
   }
+  return { source, linkedModules };
+}
+
+export function getProgram(source: string) {
   const program = parse(source, {
     sourceType: 'module',
     ecmaVersion: 12,
     locations: true,
   }) as any as Program;
-
-  return { program, linkedModules };
+  return program;
 }
 
 export function extractScripts(ast: Program) {
