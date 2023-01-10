@@ -26,7 +26,6 @@ export default class Compiler {
   residuals: Node[];
 
   ast: Node[];
-  addAst: Node[];
 
   constructor(parsed: CompilerParams) {
     this.allEntities = parsed.nodes;
@@ -41,7 +40,6 @@ export default class Compiler {
     this.residuals = parsed.residuals ? parsed.residuals : [];
 
     this.ast = [];
-    this.addAst = [];
 
     this.populateDeps(this.bindings);
   }
@@ -58,78 +56,71 @@ export default class Compiler {
     });
   }
 
-  generateBase(): Node[] {
-    this.ast = b`      
-      let ${this.identifiers
-        .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
-        .join(',')}
-
-       export function registerComponent() {
-          ${this.allEntities.map((node) => this.generateNodeStr(this.identifiers, node)).join('\n')}
-          ${this.allEntities
-            .map((node) => this.generateAttrStr(this.identifiers, node))
-            .filter((list) => list.length > 0)
-            .join('\n')}
-          ${this.listeners
-            .map(
-              (listener) =>
-                `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
-                  listener.handler
-                })`,
-            )
-            .join('\n')}
-        }
-        export function mountComponent(target) {
-          ${this.childEntities
-            .map(
-              (node) =>
-                `${this.identifiers[node.parent!.index]}.appendChild(${
-                  this.identifiers[node.index]
-                })`,
-            )
-            .join('\n')}
-          ${this.rootEntities
-            .map((node) => `target.append(${this.identifiers[node.index]})`)
-            .join('\n')}
-        }
-        export function updateComponent() {
-          let $$deps
-          ${this.bindings
-            .map(
-              (b) =>
-                `$$deps = [${b.deps.map(
-                  (d) => `\"${d}\"`,
-                )}]\nif (check_dirty_deps($$dirty, $$deps) && ${
-                  this.identifiers[b.index]
-                }_value !== (${this.identifiers[b.index]}_value = eval(${b.data}) + '')) set_data(${
-                  this.identifiers[b.index]
-                },${this.identifiers[b.index]}_value)`,
-            )
-            .join('\n')}
-          $$dirty = null
-        }
-    `;
-    return this.ast;
-  }
-
-  generateAdditions(): Node[] {
+  generate(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
+    this.ast = b`
+      import { $$invalidate, set_data, text, check_dirty_deps } from 'albio/internals';
 
-    this.addAst = b`
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
     )}
-        ${this.residuals}`;
-    return this.addAst;
-  }
+        let $$dirty = null
 
-  getFinalCode(additions: Node[]): Node[] {
-    const final = b`
-import { $$invalidate, set_data, text, check_dirty_deps } from 'albio/internals';
-    let $$dirty = null
-    ${additions}\n${this.ast}`;
+        ${this.residuals}
 
-    return final;
+        let ${this.identifiers
+          .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
+          .join(',')}
+
+         export function registerComponent() {
+            ${this.allEntities
+              .map((node) => this.generateNodeStr(this.identifiers, node))
+              .join('\n')}
+            ${this.allEntities
+              .map((node) => this.generateAttrStr(this.identifiers, node))
+              .filter((list) => list.length > 0)
+              .join('\n')}
+            ${this.listeners
+              .map(
+                (listener) =>
+                  `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
+                    listener.handler
+                  })`,
+              )
+              .join('\n')}
+          }
+          export function mountComponent(target) {
+            ${this.childEntities
+              .map(
+                (node) =>
+                  `${this.identifiers[node.parent!.index]}.appendChild(${
+                    this.identifiers[node.index]
+                  })`,
+              )
+              .join('\n')}
+            ${this.rootEntities
+              .map((node) => `target.append(${this.identifiers[node.index]})`)
+              .join('\n')}
+          }
+          export function updateComponent() {
+            let $$deps
+            ${this.bindings
+              .map(
+                (b) =>
+                  `$$deps = [${b.deps.map(
+                    (d) => `\"${d}\"`,
+                  )}]\nif (check_dirty_deps($$dirty, $$deps) && ${
+                    this.identifiers[b.index]
+                  }_value !== (${this.identifiers[b.index]}_value = eval(${
+                    b.data
+                  }) + '')) set_data(${this.identifiers[b.index]},${
+                    this.identifiers[b.index]
+                  }_value)`,
+              )
+              .join('\n')}
+            $$dirty = null
+          }`;
+    return this.ast;
   }
 
   //hacky
