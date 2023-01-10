@@ -3,22 +3,12 @@ import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import sucrase from '@rollup/plugin-sucrase';
 import typescript from '@rollup/plugin-typescript';
 import pkg from './package.json';
 
-const is_publish = !!process.env.PUBLISH;
-
-const ts_plugin = is_publish
-  ? typescript({
-      include: 'src/**',
-      typescript: require('typescript'),
-    })
-  : sucrase({
-      transforms: ['typescript'],
-    });
-
 const external = (id) => id.startsWith('albio/');
+
+fs.writeFileSync(`./compiler.d.ts`, `export * from './types/compiler/index';`);
 
 export default [
   {
@@ -36,7 +26,13 @@ export default [
       },
     ],
     external,
-    plugins: [ts_plugin],
+    plugins: [
+      typescript({
+        include: 'src/**',
+        typescript: require('typescript'),
+        tsconfig: 'src/runtime/tsconfig.json',
+      }),
+    ],
   },
 
   ...fs
@@ -61,7 +57,11 @@ export default [
         replace({
           __VERSION__: pkg.version,
         }),
-        ts_plugin,
+        typescript({
+          include: 'src/**',
+          typescript: require('typescript'),
+          tsconfig: 'src/runtime/tsconfig.json',
+        }),
         {
           writeBundle() {
             fs.writeFileSync(
@@ -70,11 +70,13 @@ export default [
                 {
                   main: './index',
                   module: './index.mjs',
+                  types: './index.d.ts',
                 },
                 null,
                 '  ',
               ),
             );
+            fs.writeFileSync(`${dir}/index.d.ts`, `export * from '../types/runtime/${dir}/index';`);
           },
         },
       ],
@@ -91,7 +93,13 @@ export default [
         include: ['node_modules/**'],
       }),
       json(),
-      ts_plugin,
+
+      typescript({
+        include: 'src/**',
+        typescript: require('typescript'),
+        tsconfig: 'src/compiler/tsconfig.json',
+      }),
+      ,
     ],
     output: [
       {
