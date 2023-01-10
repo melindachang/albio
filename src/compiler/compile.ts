@@ -44,7 +44,6 @@ export default class Compiler {
     this.addAst = [];
 
     this.populateDeps(this.bindings);
-    this.invalidateResiduals(this.residuals as any as Node);
   }
 
   // TODO messy
@@ -114,6 +113,8 @@ export default class Compiler {
   }
 
   generateAdditions(): Node[] {
+    this.invalidateResiduals(this.residuals as any as Node);
+
     this.addAst = b`
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
