@@ -2,15 +2,31 @@ import { Props } from '../interfaces';
 import { parse } from 'acorn';
 import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
+import { Element, TextNode } from 'parse5/dist/tree-adapters/default';
 
-export function parseCode(source: string) {
-  let program = parse(source, {
+export function parseCode(scripts: Element[] | string) {
+  let source: string;
+  let linkedModules: Element[];
+
+  if (typeof scripts === 'string') {
+    source = scripts;
+  } else {
+    scripts.forEach((script) => {
+      const i = script.attrs.findIndex((attr) => attr.name === 'src');
+      if (i === -1) {
+        source += (script.childNodes[0] as TextNode).value;
+      } else {
+        linkedModules.push(script);
+      }
+    });
+  }
+  const program = parse(source, {
     sourceType: 'module',
     ecmaVersion: 12,
     locations: true,
   }) as any as Program;
 
-  return program;
+  return { program, linkedModules };
 }
 
 export function extractScripts(ast: Program) {
