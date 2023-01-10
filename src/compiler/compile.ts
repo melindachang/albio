@@ -59,7 +59,7 @@ export default class Compiler {
   generate(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
-      import { $$invalidate, set_data, text, check_dirty_deps } from 'albio/internals';
+      import { $$invalidate, set_data, text, check_dirty_deps } from 'albio/internal';
 
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),

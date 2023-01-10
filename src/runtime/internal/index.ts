@@ -1,3 +1,3 @@
-export * from './dom.js';
-export * from './invalidate.js';
-export * from './schedule.js';
+export * from './dom';
+export * from './invalidate';
+export * from './schedule';

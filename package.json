@@ -1,6 +1,6 @@
 {
   "name": "albio",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "🚀 Tiny compiler-powered reactivity library for sensible web apps",
   "main": "index",
   "module": "index.mjs",
@@ -31,11 +31,13 @@
       "require": "./internal/index.js"
     }
   },
+  "types": "types/runtime/index.d.ts",
   "engines": {
     "node": ">= 8"
   },
   "scripts": {
-    "build": "rimraf types && rollup -c",
+    "build": "rollup -c && pnpm tsd",
+    "tsd": "node ./generate-types.js",
     "dev": "rollup -cw",
     "test": "jest --silent --runInBand",
     "cleanup": "prettier --write src --parser typescript",

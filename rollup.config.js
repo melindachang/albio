@@ -4,9 +4,19 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import typescript from '@rollup/plugin-typescript';
+import sucrase from '@rollup/plugin-sucrase';
 import pkg from './package.json';
 
 const external = (id) => id.startsWith('albio/');
+
+// const ts_plugin = typescript({
+//   include: 'src/**',
+//   typescript: require('typescript'),
+// });
+
+const ts_plugin = sucrase({
+  transforms: ['typescript'],
+});
 
 fs.writeFileSync(`./compiler.d.ts`, `export * from './types/compiler/index';`);
 
@@ -26,13 +36,7 @@ export default [
       },
     ],
     external,
-    plugins: [
-      typescript({
-        include: 'src/**',
-        typescript: require('typescript'),
-        tsconfig: 'src/runtime/tsconfig.json',
-      }),
-    ],
+    plugins: [ts_plugin],
   },
 
   ...fs
@@ -57,11 +61,7 @@ export default [
         replace({
           __VERSION__: pkg.version,
         }),
-        typescript({
-          include: 'src/**',
-          typescript: require('typescript'),
-          tsconfig: 'src/runtime/tsconfig.json',
-        }),
+        ts_plugin,
         {
           writeBundle() {
             fs.writeFileSync(
@@ -93,13 +93,7 @@ export default [
         include: ['node_modules/**'],
       }),
       json(),
-
-      typescript({
-        include: 'src/**',
-        typescript: require('typescript'),
-        tsconfig: 'src/compiler/tsconfig.json',
-      }),
-      ,
+      ts_plugin,
     ],
     output: [
       {

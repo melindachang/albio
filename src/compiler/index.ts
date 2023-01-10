@@ -6,5 +6,5 @@
 //  /_/    \_\_|_.__/|_|\___/
 //
 
-export * from './parse/index.js';
-export { default as Compiler } from './compile.js';
+export * from './parse/index';
+export { default as Compiler } from './compile';

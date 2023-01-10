@@ -1,3 +1,3 @@
-export * from './body.js';
-export * from './script.js';
-export * from './tags.js';
+export * from './body';
+export * from './script';
+export * from './tags';

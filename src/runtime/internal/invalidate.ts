@@ -1,5 +1,5 @@
 import { DirtMarker } from '../interfaces';
-import { scheduleUpdate } from './schedule.js';
+import { scheduleUpdate } from './schedule';
 import { print } from 'code-red';
 import { AssignmentExpression, Identifier, Node } from 'estree';
 import { extract_names } from 'periscopic';

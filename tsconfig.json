@@ -1,7 +1,9 @@
 {
+  "include": [],
   "compilerOptions": {
-    "lib": ["esnext"],
-    "target": "esnext",
+    "rootDir": "src",
+    "lib": ["es2017"],
+    "target": "es2017",
     "declaration": true,
     "declarationDir": "types",
     "noEmitOnError": true,
@@ -15,5 +17,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "typeRoots": ["./node_modules/@types"]
-  },
+  }
 }
