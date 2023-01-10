@@ -5,7 +5,7 @@ import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estre
 import { Element, TextNode } from 'parse5/dist/tree-adapters/default';
 
 export function parseCode(scripts: Element[] | string) {
-  let source: string;
+  let source = '';
   let linkedModules: Element[];
 
   if (typeof scripts === 'string') {
