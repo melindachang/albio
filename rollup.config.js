@@ -3,16 +3,10 @@ import replace from '@rollup/plugin-replace';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import typescript from '@rollup/plugin-typescript';
 import sucrase from '@rollup/plugin-sucrase';
 import pkg from './package.json';
 
 const external = (id) => id.startsWith('albio/');
-
-// const ts_plugin = typescript({
-//   include: 'src/**',
-//   typescript: require('typescript'),
-// });
 
 const ts_plugin = sucrase({
   transforms: ['typescript'],
