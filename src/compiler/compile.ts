@@ -26,6 +26,7 @@ export default class Compiler {
   residuals: Node[];
 
   ast: Node[];
+  addAst: Node[];
 
   constructor(parsed: CompilerParams) {
     this.allEntities = parsed.nodes;
@@ -40,6 +41,7 @@ export default class Compiler {
     this.residuals = parsed.residuals ? parsed.residuals : [];
 
     this.ast = [];
+    this.addAst = [];
 
     this.populateDeps(this.bindings);
     this.invalidateResiduals(this.residuals as any as Node);
@@ -112,12 +114,12 @@ export default class Compiler {
   }
 
   generateAdditions(): Node[] {
-    const additions = b`
+    this.addAst = b`
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
     )}
         ${this.residuals}`;
-    return additions;
+    return this.addAst;
   }
 
   getFinalCode(additions: Node[]): Node[] {
