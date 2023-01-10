@@ -1,21 +1,21 @@
 {
-	"compilerOptions": {
-		"rootDir": "src",
-		"lib": ["es2017"],
-		"target": "es2017",
-		"declaration": true,
-		"declarationDir": "types",
-		"noEmitOnError": true,
-		"noErrorTruncation": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true,
-		"stripInternal": true,
-		"noImplicitThis": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"typeRoots": ["./node_modules/@types"]
-	},
-	"include": [],
+  "compilerOptions": {
+    "rootDir": "src",
+    "lib": ["es2017"],
+    "target": "es2017",
+    "declaration": true,
+    "declarationDir": "types",
+    "noEmitOnError": true,
+    "noErrorTruncation": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "stripInternal": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": []
 }

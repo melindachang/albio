@@ -1,5 +1,5 @@
 import { Listener, TextTag, ElementTag, type ASTNode } from '../interfaces';
-import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
+// import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
 
 export function parseTags(
   nodes: ASTNode[],

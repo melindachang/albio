@@ -3,7 +3,7 @@ import { parseFragment } from 'parse5';
 import { ChildNode, DocumentFragment, TextNode } from 'parse5/dist/tree-adapters/default';
 
 export function parseFile(path: string) {
-  const source = readFileSync(path, { encoding: 'utf8' });
+  const source = path.endsWith('.html') ? readFileSync(path, { encoding: 'utf8' }) : path;
   const fragment = parseFragment(source);
 
   return fragment;
