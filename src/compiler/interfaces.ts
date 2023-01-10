@@ -1,4 +1,5 @@
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
+// HTML
 
 interface BaseNode {
   index: number;
