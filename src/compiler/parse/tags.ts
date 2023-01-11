@@ -1,5 +1,5 @@
 import { Listener, TextTag, ElementTag, type ASTNode } from '../interfaces';
-import { ChildNode, TextNode, Element, CommentNode } from 'parse5/dist/tree-adapters/default';
+import { ChildNode, Text, Element, Comment } from 'domhandler';
 
 export function parseTags(
   nodes: ASTNode[],
@@ -9,10 +9,10 @@ export function parseTags(
   parent?: ASTNode,
 ) {
   tags.forEach((tag) => {
-    if (tag.nodeName === '#text') {
-      index = parseText(nodes, index, tag as TextNode, parent);
-    } else if (tag.nodeName === '#comment') {
-      index = parseComment(nodes, index, tag as CommentNode, parent);
+    if (tag.type === 'text') {
+      index = parseText(nodes, index, tag as Text, parent);
+    } else if (tag.type === 'comment') {
+      index = parseComment(nodes, index, tag as Comment, parent);
     } else {
       index = parseElement(nodes, listeners, index, parent, tag as Element);
     }
@@ -20,8 +20,8 @@ export function parseTags(
   return index;
 }
 
-export function parseText(nodes: ASTNode[], index: number, tag: TextNode, parent?: ASTNode) {
-  let flag = tag.value;
+export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode) {
+  let flag = tag.data;
   let startCode, endCode;
 
   while (true) {
@@ -77,16 +77,16 @@ export function parseElement(
 ) {
   let attrs: { [key: string]: string } = {};
 
-  if (tag.attrs) {
-    tag.attrs.forEach((attr) => {
-      if (attr.name.match(/^on:/)) {
+  if (tag.attribs) {
+    Object.entries(tag.attribs).forEach(([k, v]) => {
+      if (k.match(/^on:/)) {
         listeners.push({
           index,
-          event: attr.name.split(':')[1],
-          handler: attr.value,
+          event: k.split(':')[1],
+          handler: v,
         });
       } else {
-        attrs[attr.name] = attr.value;
+        attrs[k] = v;
       }
     });
   }
@@ -95,7 +95,7 @@ export function parseElement(
     index,
     type: 'Element',
     attrs,
-    name: tag.nodeName,
+    name: tag.name,
     parent,
   };
   nodes.push(el);
@@ -103,7 +103,7 @@ export function parseElement(
   return parseTags(nodes, listeners, index + 1, tag.childNodes, el);
 }
 
-export function parseComment(nodes: ASTNode[], index: number, tag: CommentNode, parent?: ASTNode) {
+export function parseComment(nodes: ASTNode[], index: number, tag: Comment, parent?: ASTNode) {
   nodes.push({
     index,
     type: 'Comment',

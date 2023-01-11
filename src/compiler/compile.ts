@@ -123,6 +123,10 @@ export default class Compiler {
     return this.ast;
   }
 
+  astToString(): string {
+    return print(this.ast as any as Node).code;
+  }
+
   //hacky
   destringify(str: string): string {
     return eval(`(function() {return ${str}})()`);

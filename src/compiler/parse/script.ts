@@ -2,16 +2,16 @@ import { Props } from '../interfaces';
 import { parse } from 'acorn';
 import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
-import { Element, TextNode } from 'parse5/dist/tree-adapters/default';
+import { Element, DataNode } from 'domhandler';
 
 export function parseCode(scripts: Element[]) {
   let source = '';
   let linkedModules: Element[];
 
   scripts.forEach((script) => {
-    const i = script.attrs.findIndex((attr) => attr.name === 'src');
+    const i = Object.keys(script.attribs).findIndex((key) => key === 'src');
     if (i === -1) {
-      source += (script.childNodes[0] as TextNode).value;
+      source += (script.childNodes[0] as DataNode).data;
     } else {
       linkedModules.push(script);
     }
