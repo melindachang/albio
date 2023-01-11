@@ -8,10 +8,4 @@
 
 export * from './parse/index';
 export { default as Compiler } from './compile';
-export {
-  ChildNode,
-  ParentNode,
-  Element,
-  TextNode,
-  CommentNode,
-} from 'parse5/dist/tree-adapters/default';
+export { type ChildNode, type ParentNode, Element, Text, Comment } from 'domhandler';
