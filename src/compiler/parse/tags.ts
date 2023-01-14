@@ -1,11 +1,11 @@
 import { Listener, TextTag, ElementTag, type ASTNode } from '../interfaces';
-import { ChildNode, Text, Element, Comment } from 'domhandler';
+import { Text, Element, Comment, Node } from 'domhandler';
 
 export function parseTags(
   nodes: ASTNode[],
   listeners: Listener[],
   index: number,
-  tags: ChildNode[],
+  tags: Node[],
   parent?: ASTNode,
 ) {
   tags.forEach((tag) => {
@@ -22,7 +22,7 @@ export function parseTags(
 
 export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode) {
   let flag = tag.data;
-  let startCode, endCode;
+  let startCode: number, endCode: number;
 
   while (true) {
     startCode = flag.search('{');
@@ -100,7 +100,7 @@ export function parseElement(
   };
   nodes.push(el);
 
-  return parseTags(nodes, listeners, index + 1, tag.childNodes, el);
+  return parseTags(nodes, listeners, index + 1, tag.children, el);
 }
 
 export function parseComment(nodes: ASTNode[], index: number, tag: Comment, parent?: ASTNode) {
@@ -125,7 +125,7 @@ export function pruneTrailingWhitespace(nodes: ASTNode[]) {
   }
 }
 
-export function parseHtml(tags: ChildNode[]) {
+export function parseHtml(tags: Node[]) {
   const nodes: ASTNode[] = [];
   const listeners: Listener[] = [];
 

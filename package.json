@@ -1,6 +1,6 @@
 {
   "name": "albio",
-  "version": "1.0.19",
+  "version": "1.0.22",
   "description": "🚀 Tiny compiler-powered reactivity library for sensible web apps",
   "main": "index",
   "module": "index.mjs",
@@ -77,12 +77,11 @@
     "@types/js-beautify": "^1.13.3",
     "@types/node": "^16.18.11",
     "acorn": "^8.8.1",
-    "domhandler": "^5.0.3",
-    "esbuild": "^0.13.15",
     "estree-walker": "^3.0.2",
     "jest": "^27.5.1",
     "jest-cli": "^29.3.1",
     "jsep": "^1.3.8",
+    "parse5": "^7.1.2",
     "parse5-htmlparser2-tree-adapter": "^7.0.0",
     "prettier": "^2.8.2",
     "rimraf": "^3.0.2",
@@ -93,7 +92,7 @@
   },
   "dependencies": {
     "code-red": "^0.2.5",
-    "parse5": "^7.1.2",
+    "domhandler": "^5.0.3",
     "periscopic": "^3.0.4"
   }
 }
