@@ -1,9 +1,11 @@
 import { type ASTNode, Binding, Listener, ElementTag, TextTag, Props } from './interfaces';
-import { Identifier, Node, Statement } from 'estree';
+import { AssignmentExpression, Identifier, Node, Statement, UpdateExpression } from 'estree';
 import { b, x, print } from 'code-red';
 import jsep from 'jsep';
 import util from 'util';
 import { walk } from 'estree-walker';
+import { extract_names } from 'periscopic';
+import { destringify, fetch_object } from './utils';
 
 interface CompilerParams {
   nodes: ASTNode[];
@@ -50,7 +52,17 @@ export default class Compiler {
     walk(ast, {
       enter(node: any) {
         if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
-          this.replace(x`$$invalidate($$dirty, ${print(x`${node}`).code}, updateComponent)`);
+          const mutated = extract_names(
+            fetch_object(
+              node.type === 'AssignmentExpression'
+                ? (node as AssignmentExpression).left
+                : (node as UpdateExpression).argument,
+            ),
+          );
+
+          this.replace(
+            x`$$invalidate($$dirty, '${mutated[0]}', (${print(x`${node}`).code}), updateComponent)`,
+          );
         }
       },
     });
@@ -59,12 +71,12 @@ export default class Compiler {
   generate(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
-      import { $$invalidate, set_data, text, check_dirty_deps } from '/assets/albio_internal';
+      import { $$invalidate, set_data, text, check_dirty_deps } from '/assets/albio_internal.js';
 
         let {${Object.keys(this.props).join(',')}} = ${util.inspect(
-      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, this.destringify(v)])),
+      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
     )}
-        let $$dirty = null
+        let $$dirty = []
 
         ${this.residuals}
 
@@ -118,7 +130,7 @@ export default class Compiler {
                   }_value)`,
               )
               .join('\n')}
-            $$dirty = null
+            $$dirty = []
           }`;
     return this.ast;
   }
@@ -128,9 +140,6 @@ export default class Compiler {
   }
 
   //hacky
-  destringify(str: string): string {
-    return eval(`(function() {return ${str}})()`);
-  }
 
   generateNodeStr(identifiers: string[], node: ASTNode): string {
     const identifier = identifiers[node.index];
@@ -140,7 +149,7 @@ export default class Compiler {
       case 'Binding':
         return `${identifier}_value = text(${
           (node as Binding).data
-        })\n${identifier} = text(${identifier}_value)`;
+        })\n${identifier} = text(${identifier}_value.data)`;
       default:
         return `${identifier} = document.createElement("${node.name}")`;
     }

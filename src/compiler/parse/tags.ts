@@ -8,7 +8,6 @@ export function parseTags(
   tags: AnyNode[],
   parent?: ASTNode,
 ) {
-  
   tags.forEach((tag) => {
     if (tag.type === 'text') {
       index = parseText(nodes, index, tag as Text, parent);
@@ -74,7 +73,7 @@ export function parseElement(
   listeners: Listener[],
   index: number,
   tag: Element,
-  parent?: ASTNode
+  parent?: ASTNode,
 ) {
   let attrs: { [key: string]: string } = {};
 
