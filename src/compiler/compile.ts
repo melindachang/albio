@@ -1,11 +1,10 @@
 import { type ASTNode, Binding, Listener, ElementTag, TextTag, Props } from './interfaces';
-import { AssignmentExpression, Identifier, Node, Statement, UpdateExpression } from 'estree';
-import { b, x, print } from 'code-red';
-import jsep from 'jsep';
+import { Node, Statement } from 'estree';
+import { b, x, print, parse } from 'code-red';
 import util from 'util';
 import { walk } from 'estree-walker';
-import { extract_names } from 'periscopic';
-import { destringify, fetch_object } from './utils';
+import { analyze, extract_names } from 'periscopic';
+import { destringify, fetchObject } from './utils';
 
 interface CompilerParams {
   nodes: ASTNode[];
@@ -46,22 +45,21 @@ export default class Compiler {
     this.populateDeps(this.bindings);
   }
 
-  // TODO messy
-
   invalidateResiduals(ast: Node): void {
     walk(ast, {
       enter(node: any) {
-        if (node.type === 'AssignmentExpression' || node.type === 'UpdateExpression') {
-          const mutated = extract_names(
-            fetch_object(
-              node.type === 'AssignmentExpression'
-                ? (node as AssignmentExpression).left
-                : (node as UpdateExpression).argument,
-            ),
-          );
+        let mutated: string[];
+        if (node.type === 'AssignmentExpression') {
+          mutated = extract_names(fetchObject(node.left));
+        } else if (node.type === 'UpdateExpression') {
+          mutated = extract_names(fetchObject(node.argument));
+        }
 
+        if (mutated) {
           this.replace(
-            x`$$invalidate($$dirty, '${mutated[0]}', (${print(x`${node}`).code}), updateComponent)`,
+            x`$$invalidate($$dirty, '${mutated.join(',')}', (${
+              print(node).code
+            }), updateComponent)`,
           );
         }
       },
@@ -71,67 +69,60 @@ export default class Compiler {
   generate(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
-      import { $$invalidate, set_data, text, check_dirty_deps } from '/assets/albio_internal.js';
-
-        let {${Object.keys(this.props).join(',')}} = ${util.inspect(
+    import { $$invalidate, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
+      let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
     )}
-        let $$dirty = []
-
-        ${this.residuals}
-
-        let ${this.identifiers
-          .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
-          .join(',')}
-
-         export function registerComponent() {
-            ${this.allEntities
-              .map((node) => this.generateNodeStr(this.identifiers, node))
-              .join('\n')}
-            ${this.allEntities
-              .map((node) => this.generateAttrStr(this.identifiers, node))
-              .filter((list) => list.length > 0)
-              .join('\n')}
-            ${this.listeners
-              .map(
-                (listener) =>
-                  `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
-                    listener.handler
-                  })`,
-              )
-              .join('\n')}
-          }
-          export function mountComponent(target) {
-            ${this.childEntities
-              .map(
-                (node) =>
-                  `${this.identifiers[node.parent!.index]}.appendChild(${
-                    this.identifiers[node.index]
-                  })`,
-              )
-              .join('\n')}
-            ${this.rootEntities
-              .map((node) => `target.append(${this.identifiers[node.index]})`)
-              .join('\n')}
-          }
-          export function updateComponent() {
-            let $$deps
-            ${this.bindings
-              .map(
-                (b) =>
-                  `$$deps = [${b.deps.map(
-                    (d) => `\"${d}\"`,
-                  )}]\nif (check_dirty_deps($$dirty, $$deps) && ${
-                    this.identifiers[b.index]
-                  }_value !== (${this.identifiers[b.index]}_value = eval(${
-                    b.data
-                  }) + '')) set_data(${this.identifiers[b.index]},${
-                    this.identifiers[b.index]
-                  }_value)`,
-              )
-              .join('\n')}
-            $$dirty = []
-          }`;
+      let $$dirty = []
+      ${this.residuals}
+      let ${this.identifiers
+        .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
+        .join(',')}
+     export function registerComponent() {
+        ${this.allEntities.map((node) => this.generateNodeStr(this.identifiers, node)).join('\n')}
+        ${this.allEntities
+          .map((node) => this.generateAttrStr(this.identifiers, node))
+          .filter((list) => list.length > 0)
+          .join('\n')}
+        ${this.listeners
+          .map(
+            (listener) =>
+              `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
+                listener.handler
+              })`,
+          )
+          .join('\n')}
+      }
+      export function mountComponent(target) {
+        ${this.childEntities
+          .map(
+            (node) =>
+              `${this.identifiers[node.parent!.index]}.appendChild(${
+                this.identifiers[node.index]
+              })`,
+          )
+          .join('\n')}
+        ${this.rootEntities
+          .map((node) => `target.append(${this.identifiers[node.index]})`)
+          .join('\n')}
+      }
+      export function updateComponent() {
+        let $$deps
+        ${this.bindings
+          .map(
+            (b) =>
+              `$$deps = [${b.deps.map(
+                (d) => `\"${d}\"`,
+              )}]\nif ($$checkDirtyDeps($$dirty, $$deps) && ${
+                this.identifiers[b.index]
+              }_value !== (${this.identifiers[b.index]}_value = eval(${b.data}) + '')) $$setData(${
+                this.identifiers[b.index]
+              },${this.identifiers[b.index]}_value)`,
+          )
+          .join('\n')}
+        $$dirty = []
+      }
+    `;
     return this.ast;
   }
 
@@ -139,17 +130,15 @@ export default class Compiler {
     return print(this.ast as any as Node).code;
   }
 
-  //hacky
-
   generateNodeStr(identifiers: string[], node: ASTNode): string {
     const identifier = identifiers[node.index];
     switch (node.type) {
       case 'Text':
-        return `${identifier} = text("${(node as TextTag).value.replace(/\n/g, '\\n')}")`;
+        return `${identifier} = $$text("${(node as TextTag).value.replace(/\n/g, '\\n')}")`;
       case 'Binding':
-        return `${identifier}_value = text(${
+        return `${identifier}_value = $$text(${
           (node as Binding).data
-        })\n${identifier} = text(${identifier}_value.data)`;
+        })\n${identifier} = $$text(${identifier}_value.data)`;
       default:
         return `${identifier} = document.createElement("${node.name}")`;
     }
@@ -164,27 +153,15 @@ export default class Compiler {
   }
 
   populateDeps(bindings: Binding[]): void {
-    bindings.forEach((b) => {
-      let exp = jsep(b.data);
-      b.deps = [];
-      if (exp.type === 'Identifier') {
-        b.deps.push((exp as any as Identifier).name);
-      } else {
-        this.iterateExp(exp, b.deps);
-      }
-    });
-  }
-
-  iterateExp(exp: any, deps: string[]): void {
-    Object.keys(exp).forEach((key) => {
-      if (
-        key === 'object' ||
-        ((key === 'consequent' || key === 'alternate') && exp[key].type === 'Identifier')
-      ) {
-        (deps = deps ? deps : []).push(exp[key].name);
-      } else if (typeof exp[key] === 'object' && exp[key] !== null) {
-        this.iterateExp(exp[key], deps);
-      }
+    bindings.forEach((binding) => {
+      binding.deps = [];
+      const expression: Node = parse(binding.data, {
+        sourceType: 'module',
+        ecmaVersion: 12,
+        locations: true,
+      });
+      const { scope } = analyze(expression);
+      [...scope.references].forEach((ref) => binding.deps.push(ref));
     });
   }
 }

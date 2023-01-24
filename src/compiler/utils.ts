@@ -1,6 +1,6 @@
 import { Node, Identifier } from 'estree';
 
-export function fetch_object(node: Node): Identifier {
+export function fetchObject(node: Node): Identifier {
   while (node.type === 'MemberExpression') node = node.object;
   return node as Identifier;
 }

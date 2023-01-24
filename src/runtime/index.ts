@@ -1,1 +1,1 @@
-export { $$invalidate, text, set_data, check_dirty_deps } from './internal/index';
+export { $$invalidate, $$text, $$setData, $$checkDirtyDeps } from './internal/index';
