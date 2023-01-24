@@ -1,10 +1,10 @@
-import { type ASTNode, Binding, Listener, ElementTag, TextTag, Props } from './interfaces';
+import { type ASTNode, Binding, Listener, Props } from './interfaces';
 import { Node, Statement } from 'estree';
 import { b, x, print, parse } from 'code-red';
 import util from 'util';
 import { walk } from 'estree-walker';
 import { analyze, extract_names } from 'periscopic';
-import { destringify, fetchObject } from './utils';
+import { destringify, fetchObject, generateAttrStr, generateNodeStr } from './utils';
 
 interface CompilerParams {
   nodes: ASTNode[];
@@ -79,9 +79,9 @@ export default class Compiler {
         .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
         .join(',')}
      export function registerComponent() {
-        ${this.allEntities.map((node) => this.generateNodeStr(this.identifiers, node)).join('\n')}
+        ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node)).join('\n')}
         ${this.allEntities
-          .map((node) => this.generateAttrStr(this.identifiers, node))
+          .map((node) => generateAttrStr(this.identifiers, node))
           .filter((list) => list.length > 0)
           .join('\n')}
         ${this.listeners
@@ -131,28 +131,6 @@ export default class Compiler {
 
   astToString(): string {
     return print(this.ast as any as Node).code;
-  }
-
-  generateNodeStr(identifiers: string[], node: ASTNode): string {
-    const identifier = identifiers[node.index];
-    switch (node.type) {
-      case 'Text':
-        return `${identifier} = $$text("${(node as TextTag).value.replace(/\n/g, '\\n')}")`;
-      case 'Binding':
-        return `${identifier}_value = $$text(${
-          (node as Binding).data
-        })\n${identifier} = $$text(${identifier}_value.data)`;
-      default:
-        return `${identifier} = document.createElement("${node.name}")`;
-    }
-  }
-
-  generateAttrStr(identifiers: string[], node: ASTNode): string[] {
-    if (!(node as ElementTag).attrs) return [];
-    const identifier = identifiers[node.index];
-    return Object.entries((node as ElementTag).attrs!).map(
-      ([name, value]) => `${identifier}.setAttribute("${name}", "${value}")`,
-    );
   }
 
   populateDeps(bindings: Binding[]): void {

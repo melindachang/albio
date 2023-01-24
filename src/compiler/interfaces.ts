@@ -1,3 +1,5 @@
+import { ChildNode } from 'domhandler';
+
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
 // HTML
 
@@ -7,6 +9,13 @@ interface BaseNode {
   type: string;
   parent?: ASTNode;
   children?: ASTNode[];
+}
+
+export interface Block {
+  nodeType: string;
+  startNode: ChildNode;
+  endNode: ChildNode | null;
+  chunk: ChildNode[];
 }
 
 export interface TextTag extends BaseNode {
