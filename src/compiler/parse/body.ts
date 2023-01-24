@@ -6,7 +6,10 @@ import { Block } from '../interfaces';
 
 export const extractFragment = (path: string) => {
   const source = path.endsWith('.html') ? readFileSync(path, { encoding: 'utf8' }) : path;
-  const fragment: Document = parseFragment(source, { treeAdapter: adapter });
+  const fragment: Document = parseFragment(source, {
+    treeAdapter: adapter,
+    sourceCodeLocationInfo: true,
+  });
   const script: Element[] = [];
   const tags: AnyNode[] = [];
   const blocks: Block[] = [];
@@ -15,7 +18,7 @@ export const extractFragment = (path: string) => {
     if (child.type === 'text') {
       if (child.data.includes('{#')) {
         const nodeType: string = child.data.split('{#')[1].split(' ')[0];
-        blocks.push({ nodeType, startNode: child, endNode: null, chunk: null });
+        blocks.push({ nodeType, startNode: child, endNode: null, chunk: [] });
       } else if (child.data.includes('{/')) {
         const nodeType: string = child.data.split('{/')[1].split('}')[0];
         const i = blocks.reverse().findIndex((block) => block.nodeType === nodeType);
@@ -27,17 +30,18 @@ export const extractFragment = (path: string) => {
 
   fragment.children.forEach((child) => {
     let withinBlock = false;
+    let isBlock = false;
     blocks.forEach((block) => {
       if (
-        child.startIndex >= block.startNode.endIndex &&
-        child.endIndex <= block.endNode.startIndex
+        child.startIndex > block.startNode.endIndex &&
+        child.endIndex < block.endNode.startIndex
       ) {
         withinBlock = true;
         block.chunk.push(child);
       }
     });
 
-    if (!withinBlock) tags.push(child);
+    if (!withinBlock && !isBlock) tags.push(child);
   });
 
   return { script, tags, blocks };
