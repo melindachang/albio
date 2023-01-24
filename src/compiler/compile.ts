@@ -115,9 +115,12 @@ export default class Compiler {
                 (d) => `\"${d}\"`,
               )}]\nif ($$checkDirtyDeps($$dirty, $$deps) && ${
                 this.identifiers[b.index]
-              }_value !== (${this.identifiers[b.index]}_value = eval(${b.data}) + '')) $$setData(${
+              }_value !== (${this.identifiers[b.index]}_value = eval("${b.data.replace(
+                /(^|[^\\])"/g,
+                '$1\\"',
+              )}") + '')) $$setData(${this.identifiers[b.index]},${
                 this.identifiers[b.index]
-              },${this.identifiers[b.index]}_value)`,
+              }_value)`,
           )
           .join('\n')}
         $$dirty = []
