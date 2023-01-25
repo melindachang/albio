@@ -1,5 +1,6 @@
-import { Listener, TextTag, ElementTag, type ASTNode } from '../interfaces';
+import { Listener, TextTag, ElementTag, type ASTNode, Binding } from '../interfaces';
 import { Text, Element, Comment, type AnyNode } from 'domhandler';
+import { TagToken } from 'parse5/dist/common/token';
 
 export function parseTags(
   nodes: ASTNode[],
@@ -33,10 +34,10 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
       flag = flag.substring(endCode + 1);
       if (!flag) break;
     } else if (startCode < 0) {
-      index = addText(nodes, index, flag, parent);
+      index = addText(nodes, index, flag, tag, parent);
       break;
     } else {
-      index = addText(nodes, index, flag.substring(0, startCode), parent);
+      index = addText(nodes, index, flag.substring(0, startCode), tag, parent);
       flag = flag.substring(startCode);
     }
   }
@@ -44,7 +45,13 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
   return index;
 }
 
-export function addText(nodes: ASTNode[], index: number, value: string, parent?: ASTNode): number {
+export function addText(
+  nodes: ASTNode[],
+  index: number,
+  value: string,
+  tag: Text,
+  parent?: ASTNode,
+): number {
   if (index === 0 && value.trim() === '') return index;
 
   nodes.push({
@@ -52,6 +59,8 @@ export function addText(nodes: ASTNode[], index: number, value: string, parent?:
     type: 'Text',
     value,
     parent,
+    startIndex: tag.startIndex,
+    endIndex: tag.endIndex,
   });
 
   return index + 1;
@@ -68,7 +77,7 @@ export function addBinding(
     type: 'Binding',
     data,
     parent,
-  });
+  } as Binding);
 
   return index + 1;
 }
@@ -102,6 +111,8 @@ export function parseElement(
     attrs,
     name: tag.name,
     parent,
+    startIndex: tag.startIndex,
+    endIndex: tag.endIndex,
   };
   nodes.push(el);
 
@@ -119,6 +130,8 @@ export function parseComment(
     type: 'Comment',
     parent,
     value: tag.data,
+    startIndex: tag.startIndex,
+    endIndex: tag.endIndex,
   });
 
   return index + 1;

@@ -14,6 +14,8 @@ interface BaseNode {
   type: string;
   parent?: ASTNode;
   children?: ASTNode[];
+  startIndex: number | null;
+  endIndex: number | null;
 }
 
 export type BlockType = 'each' | 'if' | 'else';
@@ -60,6 +62,8 @@ export interface Binding extends BaseNode {
   default_value: string;
   data: string;
   deps: string[];
+  startIndex: undefined;
+  endIndex: undefined;
 }
 
 export interface Props {
