@@ -1,6 +1,7 @@
 import { type ASTNode, Binding, Listener, Props } from './interfaces';
 import { Node, Statement } from 'estree';
-import { b, x, print, parse } from 'code-red';
+import { b, x, print } from 'code-red';
+import { parse } from './utils';
 import util from 'util';
 import { walk } from 'estree-walker';
 import { analyze, extract_names } from 'periscopic';
@@ -136,11 +137,7 @@ export default class Compiler {
   populateDeps(bindings: Binding[]): void {
     bindings.forEach((binding) => {
       binding.deps = [];
-      const expression: Node = parse(binding.data, {
-        sourceType: 'module',
-        ecmaVersion: 12,
-        locations: true,
-      });
+      const expression: Node = parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => binding.deps.push(ref));
     });

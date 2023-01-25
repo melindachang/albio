@@ -2,6 +2,7 @@ import { ChildNode } from 'domhandler';
 
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
 // HTML
+export type BlockType = 'each' | 'if' | 'else';
 
 interface BaseNode {
   index: number;
@@ -12,10 +13,22 @@ interface BaseNode {
 }
 
 export interface Block {
-  nodeType: string;
+  nodeType: BlockType;
   startNode: ChildNode;
   endNode: ChildNode | null;
   chunk: ChildNode[];
+}
+export interface EachBlock extends Block {
+  nodeType: 'each';
+}
+
+export interface IfBlock extends Block {
+  nodeType: 'if';
+}
+
+export interface ElseBlock extends Block {
+  nodeType: 'else';
+  linkedIfBlock: Block;
 }
 
 export interface TextTag extends BaseNode {

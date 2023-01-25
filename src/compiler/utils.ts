@@ -1,5 +1,13 @@
 import { Node, Identifier } from 'estree';
 import { ASTNode, Binding, ElementTag, TextTag } from './interfaces';
+import * as code_red from 'code-red';
+
+export const parse = (source: string): Node =>
+  code_red.parse(source, {
+    sourceType: 'module',
+    ecmaVersion: 12,
+    locations: true,
+  });
 
 export function fetchObject(node: Node): Identifier {
   while (node.type === 'MemberExpression') node = node.object;
