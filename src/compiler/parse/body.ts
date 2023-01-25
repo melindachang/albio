@@ -3,7 +3,6 @@ import { parseFragment } from 'parse5';
 import { adapter } from 'parse5-htmlparser2-tree-adapter';
 import { Document, Element, type AnyNode } from 'domhandler';
 import { Block, BlockType } from '../interfaces';
-import { listenerCount } from 'process';
 
 export const extractFragment = (path: string) => {
   const source = path.endsWith('.html') ? readFileSync(path, { encoding: 'utf8' }) : path;
@@ -20,6 +19,7 @@ export const extractFragment = (path: string) => {
       if (child.data.includes('{#')) {
         const nodeType: string = child.data.split('{#')[1].split(' ')[0];
         blocks.push({
+          index: blocks.length,
           nodeType: nodeType as BlockType,
           startNode: child,
           endNode: null,

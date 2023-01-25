@@ -7,7 +7,7 @@ export function parseTags(
   index: number,
   tags: AnyNode[],
   parent?: ASTNode,
-) {
+): number {
   tags.forEach((tag) => {
     if (tag.type === 'text') {
       index = parseText(nodes, index, tag as Text, parent);
@@ -20,7 +20,7 @@ export function parseTags(
   return index;
 }
 
-export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode) {
+export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode): number {
   let flag = tag.data;
   let startCode: number, endCode: number;
 
@@ -44,7 +44,7 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
   return index;
 }
 
-export function addText(nodes: ASTNode[], index: number, value: string, parent?: ASTNode) {
+export function addText(nodes: ASTNode[], index: number, value: string, parent?: ASTNode): number {
   if (index === 0 && value.trim() === '') return index;
 
   nodes.push({
@@ -57,7 +57,12 @@ export function addText(nodes: ASTNode[], index: number, value: string, parent?:
   return index + 1;
 }
 
-export function addBinding(nodes: ASTNode[], index: number, data: string, parent?: ASTNode) {
+export function addBinding(
+  nodes: ASTNode[],
+  index: number,
+  data: string,
+  parent?: ASTNode,
+): number {
   nodes.push({
     index,
     type: 'Binding',
@@ -103,7 +108,12 @@ export function parseElement(
   return parseTags(nodes, listeners, index + 1, tag.children, el);
 }
 
-export function parseComment(nodes: ASTNode[], index: number, tag: Comment, parent?: ASTNode) {
+export function parseComment(
+  nodes: ASTNode[],
+  index: number,
+  tag: Comment,
+  parent?: ASTNode,
+): number {
   nodes.push({
     index,
     type: 'Comment',
@@ -114,7 +124,7 @@ export function parseComment(nodes: ASTNode[], index: number, tag: Comment, pare
   return index + 1;
 }
 
-export function pruneTrailingWhitespace(nodes: ASTNode[]) {
+export function pruneTrailingWhitespace(nodes: ASTNode[]): void {
   let i = nodes.length - 1;
   let node = nodes[i];
 
@@ -125,7 +135,7 @@ export function pruneTrailingWhitespace(nodes: ASTNode[]) {
   }
 }
 
-export function parseHtml(tags: AnyNode[]) {
+export function parseHtml(tags: AnyNode[]): { nodes: ASTNode[]; listeners: Listener[] } {
   const nodes: ASTNode[] = [];
   const listeners: Listener[] = [];
 

@@ -1,8 +1,12 @@
 import { ChildNode } from 'domhandler';
 
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
-// HTML
-export type BlockType = 'each' | 'if' | 'else';
+
+/**
+ * Maybe include start and end location in parsing instead of index so that you can incorporate blocks
+ * Compiler $$invalidate function should pass in an array of update functions for every component with
+ *  the reassigned variable as a dependency
+ */
 
 interface BaseNode {
   index: number;
@@ -12,7 +16,10 @@ interface BaseNode {
   children?: ASTNode[];
 }
 
+export type BlockType = 'each' | 'if' | 'else';
+
 export interface Block {
+  index: number;
   nodeType: BlockType;
   startNode: ChildNode;
   endNode: ChildNode | null;

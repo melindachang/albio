@@ -31,15 +31,15 @@ export default class Compiler {
 
   constructor(parsed: CompilerParams) {
     this.allEntities = parsed.nodes;
-    this.rootEntities = parsed.nodes.filter((node) => node.parent === undefined);
-    this.childEntities = parsed.nodes.filter((node) => node.parent !== undefined);
+    this.rootEntities = parsed.nodes.filter((node) => !node.parent);
+    this.childEntities = parsed.nodes.filter((node) => node.parent);
 
     this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
     this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
-    this.reactives = parsed.reactives ? parsed.reactives : [];
-    this.props = parsed.props ? parsed.props : {};
+    this.reactives = parsed.reactives || [];
+    this.props = parsed.props || {};
     this.listeners = parsed.listeners;
-    this.residuals = parsed.residuals ? parsed.residuals : [];
+    this.residuals = parsed.residuals || [];
 
     this.ast = [];
 
@@ -60,7 +60,7 @@ export default class Compiler {
           this.replace(
             x`$$invalidate($$dirty, '${mutated.join(',')}', (${
               print(node).code
-            }), updateComponent)`,
+            }), updateFragment)`,
           );
         }
       },
@@ -71,15 +71,19 @@ export default class Compiler {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
     import { $$invalidate, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
+
       let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
     )}
+
+    
       let $$dirty = []
+
       ${this.residuals}
       let ${this.identifiers
         .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
         .join(',')}
-     export function registerComponent() {
+     export function registerFragment() {
         ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node)).join('\n')}
         ${this.allEntities
           .map((node) => generateAttrStr(this.identifiers, node))
@@ -94,7 +98,7 @@ export default class Compiler {
           )
           .join('\n')}
       }
-      export function mountComponent(target) {
+      export function mountFragment(target) {
         ${this.childEntities
           .map(
             (node) =>
@@ -107,7 +111,7 @@ export default class Compiler {
           .map((node) => `target.append(${this.identifiers[node.index]})`)
           .join('\n')}
       }
-      export function updateComponent() {
+      export function updateFragment() {
         let $$deps
         ${this.bindings
           .map(

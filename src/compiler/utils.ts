@@ -28,7 +28,7 @@ export function generateNodeStr(identifiers: string[], node: ASTNode): string {
         (node as Binding).data
       })\n${identifier} = $$text(${identifier}_value.data)`;
     default:
-      return `${identifier} = document.createElement("${node.name}")`;
+      return `${identifier} = $$element("${node.name}")`;
   }
 }
 
@@ -38,4 +38,8 @@ export function generateAttrStr(identifiers: string[], node: ASTNode): string[] 
   return Object.entries((node as ElementTag).attrs!).map(
     ([name, value]) => `${identifier}.setAttribute("${name}", "${value}")`,
   );
+}
+
+export function createUniqueName(func: string): string {
+  return `${func}_${(Math.random() + 1).toString(36).substring(7)}`;
 }
