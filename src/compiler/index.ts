@@ -7,5 +7,6 @@
 //
 
 export * from './parse/index';
+export * from './components/index';
 export { default as Compiler } from './compile';
 export { type ChildNode, type ParentNode, Element, Text, Comment } from 'domhandler';

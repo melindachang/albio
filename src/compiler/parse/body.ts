@@ -27,7 +27,7 @@ export const extractFragment = (path: string) => {
         });
       } else if (child.data.includes('{/')) {
         const nodeType: string = child.data.split('{/')[1].split('}')[0];
-        const i = blocks.reverse().findIndex((block) => block.nodeType === nodeType);
+        const i = blocks.reverse().findIndex((b) => b.nodeType === nodeType);
         blocks[i].endNode = child;
       }
     }
@@ -37,14 +37,11 @@ export const extractFragment = (path: string) => {
   for (let i = tags.length - 1; i >= 0; i--) {
     let withinBlock = false;
     let isBlock = false;
-    blocks.forEach((block) => {
-      if (
-        tags[i].startIndex >= block.startNode.endIndex &&
-        tags[i].endIndex <= block.endNode.startIndex
-      ) {
+    blocks.forEach((b) => {
+      if (tags[i].startIndex >= b.startNode.endIndex && tags[i].endIndex <= b.endNode.startIndex) {
         withinBlock = true;
-        block.chunk.push(tags[i]);
-      } else if (block.startNode === tags[i] || block.endNode === tags[i]) isBlock = true;
+        b.chunk.push(tags[i]);
+      } else if (b.startNode === tags[i] || b.endNode === tags[i]) isBlock = true;
     });
 
     if (withinBlock || isBlock) tags.splice(i, 1);

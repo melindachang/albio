@@ -40,6 +40,6 @@ export function generateAttrStr(identifiers: string[], node: ASTNode): string[] 
   );
 }
 
-export function createUniqueName(func: string): string {
-  return `${func}_${(Math.random() + 1).toString(36).substring(2, 5)}`;
+export function createUniqueName(): string {
+  return `${(Math.random() + 1).toString(36).substring(2, 5)}`;
 }

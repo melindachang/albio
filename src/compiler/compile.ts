@@ -6,6 +6,8 @@ import util from 'util';
 import { walk } from 'estree-walker';
 import { analyze, extract_names } from 'periscopic';
 import { destringify, fetchObject, generateAttrStr, generateNodeStr } from './utils';
+import Component from './components/Component';
+import { EachBlockComponent } from './components';
 
 interface CompilerParams {
   nodes: ASTNode[];
@@ -13,6 +15,7 @@ interface CompilerParams {
   props?: Props;
   reactives?: Statement[];
   residuals?: Node[];
+  blocks?: Component[];
 }
 
 export default class Compiler {
@@ -26,6 +29,7 @@ export default class Compiler {
   props: Props;
   listeners: Listener[];
   residuals: Node[];
+  blocks: Component[];
 
   ast: Node[];
 
@@ -40,6 +44,8 @@ export default class Compiler {
     this.props = parsed.props || {};
     this.listeners = parsed.listeners;
     this.residuals = parsed.residuals || [];
+    this.blocks = parsed.blocks || [];
+    console.log(print((this.blocks[0] as EachBlockComponent).render_each_block()).code);
 
     this.ast = [];
 
@@ -47,6 +53,7 @@ export default class Compiler {
   }
 
   invalidateResiduals(ast: Node): void {
+    const props: string[] = Object.keys(this.props);
     walk(ast, {
       enter(node: any) {
         let mutated: string[];
@@ -56,7 +63,7 @@ export default class Compiler {
           mutated = extract_names(fetchObject(node.argument));
         }
 
-        if (mutated) {
+        if (mutated && mutated.some((m) => props.indexOf(m) > -1)) {
           this.replace(
             x`$$invalidate($$dirty, '${mutated.join(',')}', (${print(node).code}), updateFragment)`,
           );
@@ -68,7 +75,7 @@ export default class Compiler {
   generate(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
-    import { $$invalidate, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
+    import { $$invalidate, $$element, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
 
       let {${Object.keys(this.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
@@ -125,6 +132,7 @@ export default class Compiler {
         $$dirty = []
       }
     `;
+
     return this.ast;
   }
 

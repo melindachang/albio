@@ -29,7 +29,7 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
     startCode = flag.search('{');
 
     if (startCode === 0) {
-      endCode = flag.search('}');
+      endCode = flag.lastIndexOf('}');
       index = addBinding(nodes, index, flag.substring(1, endCode), parent);
       flag = flag.substring(endCode + 1);
       if (!flag) break;

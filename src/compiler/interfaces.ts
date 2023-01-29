@@ -1,6 +1,7 @@
-import { ChildNode } from 'domhandler';
+import { AnyNode } from 'domhandler';
 
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
+export type BlockType = 'each' | 'if' | 'else';
 
 /**
  * Maybe include start and end location in parsing instead of index so that you can incorporate blocks
@@ -18,14 +19,12 @@ interface BaseNode {
   endIndex: number | null;
 }
 
-export type BlockType = 'each' | 'if' | 'else';
-
 export interface Block {
   index: number;
   nodeType: BlockType;
-  startNode: ChildNode;
-  endNode: ChildNode | null;
-  chunk: ChildNode[];
+  startNode: AnyNode;
+  endNode: AnyNode | null;
+  chunk: AnyNode[];
 }
 export interface EachBlock extends Block {
   nodeType: 'each';
