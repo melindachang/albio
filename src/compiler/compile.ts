@@ -58,9 +58,7 @@ export default class Compiler {
 
         if (mutated) {
           this.replace(
-            x`$$invalidate($$dirty, '${mutated.join(',')}', (${
-              print(node).code
-            }), updateFragment)`,
+            x`$$invalidate($$dirty, '${mutated.join(',')}', (${print(node).code}), updateFragment)`,
           );
         }
       },
@@ -76,7 +74,6 @@ export default class Compiler {
       Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
     )}
 
-    
       let $$dirty = []
 
       ${this.residuals}
@@ -112,13 +109,10 @@ export default class Compiler {
           .join('\n')}
       }
       export function updateFragment() {
-        let $$deps
         ${this.bindings
           .map(
             (b) =>
-              `$$deps = [${b.deps.map(
-                (d) => `\"${d}\"`,
-              )}]\nif ($$checkDirtyDeps($$dirty, $$deps) && ${
+              `if ($$checkDirtyDeps($$dirty, [${b.deps.map((d) => `\"${d}\"`)}]) && ${
                 this.identifiers[b.index]
               }_value !== (${this.identifiers[b.index]}_value = eval("${b.data.replace(
                 /(^|[^\\])"/g,

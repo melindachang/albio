@@ -1,7 +1,7 @@
 import { ChildNode } from 'domhandler';
 import { Block, type BlockType } from '../interfaces';
 
-export default class Wrapper {
+export default class Component {
   type: BlockType;
   startNode: ChildNode;
   endNode: ChildNode;

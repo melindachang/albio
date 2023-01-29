@@ -41,5 +41,5 @@ export function generateAttrStr(identifiers: string[], node: ASTNode): string[] 
 }
 
 export function createUniqueName(func: string): string {
-  return `${func}_${(Math.random() + 1).toString(36).substring(7)}`;
+  return `${func}_${(Math.random() + 1).toString(36).substring(2, 5)}`;
 }

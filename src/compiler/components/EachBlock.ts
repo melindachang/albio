@@ -1,25 +1,17 @@
 import { Text } from 'domhandler';
 import { EachBlock } from '../interfaces';
-import Wrapper from './Wrapper';
+import Component from './Component';
 import { createUniqueName, parse } from '../utils';
-import { analyze, Scope } from 'periscopic';
+import { analyze } from 'periscopic';
 import { x } from 'code-red';
 import { Node } from 'estree';
-
-/**
- * What must be done:
- * - Construct a new EachBlockWrapper for every EachBlock discovered
- * - Generate instructions to create_each_block with unique content upon createComponent()
- * - When a reassignment occurs, 1. remove elements from DOM, 2. regenerate elements, 3. append to DOM
- * - Would be nice to have optimizations here so that it doesn't replace every single element every time
- */
 
 interface IterableKey {
   name: string;
   variableRef: string;
 }
 
-export default class EachBlockWrapper extends Wrapper {
+export default class EachBlockComponent extends Component {
   identifier: string;
   iterable: string;
   keys: IterableKey[];
@@ -47,7 +39,7 @@ export default class EachBlockWrapper extends Wrapper {
 
   render_each_block(): Node {
     return x`
-      export function ${this.identifier}() {
+      function ${this.identifier}() {
         return {
           c() {}
           m() {}
