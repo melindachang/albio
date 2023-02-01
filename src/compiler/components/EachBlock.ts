@@ -36,29 +36,25 @@ export default class EachBlockComponent extends BlockComponent {
     }
   }
 
+  // FINISH: each iteration is its own component with its own lifecycle stored inside create_each_block 
+
   render_each_block(): Node {
     return x`
-      function create_each_block_${this.tag}() {
+      function create_each_block_${this.tag}(dep) {
         
-        let ${this.identifiers.join(',')}
+        let iters = []
+
+        function register_node() {
+          let ${this.identifiers.join(',')}
+
+        }
+
+        for (let #i = 0; #i < Object.keys(dep).length; #i++) iters[i] = register_node();
+
         return {
           c() {
-            ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node)).join('\n')}
-            ${this.allEntities
-              .map((node) => generateAttrStr(this.identifiers, node))
-              .filter((list) => list.length > 0)
-              .join('\n')}
-            ${this.listeners
-              .map(
-                (l) => `${this.identifiers[l.index]}.addEventListener("${l.event}", ${l.handler})`,
-              )
-              .join('\n')}
-
           },
           m() {
-            for (let #i = 0; #i < Object.keys(${this.iterable}).length; #i++) {
-              
-            }
           },
           u() {}
         }

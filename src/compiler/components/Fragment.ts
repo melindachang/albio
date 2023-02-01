@@ -1,5 +1,4 @@
-import { destringify, fetchObject, generateAttrStr, generateNodeStr, parse } from '../utils';
-import util from 'util';
+import { fetchObject, generateAttrStr, generateNodeStr, parse } from '../utils';
 import { Node, Statement } from 'estree';
 import { Binding, CompilerParams, Props } from '../interfaces';
 import Component from './Component';
@@ -10,18 +9,15 @@ import { b, print, x } from 'code-red';
 export default class Fragment extends Component {
   reactives: Statement[];
   residuals: Node[];
-  blocks: Component[];
   props: Props;
   ast: Node[];
 
   constructor(parsed: CompilerParams) {
     super(parsed);
-    ``;
     this.rootEntities = parsed.nodes.filter((node) => !node.parent);
     this.childEntities = parsed.nodes.filter((node) => node.parent);
     this.residuals = parsed.reactives || [];
     this.residuals = parsed.residuals || [];
-    this.blocks = parsed.blocks || [];
     this.props = parsed.props || {};
 
     this.ast = [];
@@ -49,16 +45,15 @@ export default class Fragment extends Component {
     });
   }
 
-  generate(): Node[] {
+  render_fragment(): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
-    import { $$invalidate, $$element, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
 
-      function create_fragment() {
-      let ${this.identifiers
+    function create_fragment() {
+        let ${this.identifiers
         .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
         .join(',')}
-     return { c() {
+        return { c() {
         ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node)).join('\n')}
         ${this.allEntities
           .map((node) => generateAttrStr(this.identifiers, node))
@@ -102,24 +97,11 @@ export default class Fragment extends Component {
           .join('\n')}
         $$dirty = []
       }
+        }
     }
-    }
-    export const app = create_fragment();
-    
-    let {${Object.keys(this.props).join(',')}} = ${util.inspect(
-      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
-    )}
-  
-        let $$dirty = []
-  
-        ${this.residuals}
     `;
 
     return this.ast;
-  }
-
-  astToString(): string {
-    return print(this.ast as any as Node).code;
   }
 
   populateDeps(bindings: Binding[]): void {
