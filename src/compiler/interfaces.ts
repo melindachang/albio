@@ -1,4 +1,6 @@
 import { AnyNode } from 'domhandler';
+import { Node, Statement } from 'estree';
+import { Component } from './components';
 
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
 export type BlockType = 'each' | 'if' | 'else';
@@ -73,4 +75,13 @@ export interface Listener {
   index: number;
   event: string;
   handler: string;
+}
+
+export interface CompilerParams {
+  nodes: ASTNode[];
+  listeners: Listener[];
+  props?: Props;
+  reactives?: Statement[];
+  residuals?: Node[];
+  blocks?: Component[];
 }

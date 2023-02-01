@@ -1,51 +1,28 @@
-import { type ASTNode, Binding, Listener, Props } from './interfaces';
-import { Node, Statement } from 'estree';
-import { b, x, print } from 'code-red';
-import { parse } from './utils';
+import { destringify, fetchObject, generateAttrStr, generateNodeStr, parse } from '../utils';
 import util from 'util';
-import { walk } from 'estree-walker';
+import { Node, Statement } from 'estree';
+import { Binding, CompilerParams, Props } from '../interfaces';
+import Component from './Component';
 import { analyze, extract_names } from 'periscopic';
-import { destringify, fetchObject, generateAttrStr, generateNodeStr } from './utils';
-import Component from './components/Component';
-import { EachBlockComponent } from './components';
+import { walk } from 'estree-walker';
+import { b, print, x } from 'code-red';
 
-interface CompilerParams {
-  nodes: ASTNode[];
-  listeners: Listener[];
-  props?: Props;
-  reactives?: Statement[];
-  residuals?: Node[];
-  blocks?: Component[];
-}
-
-export default class Compiler {
-  allEntities: ASTNode[];
-  rootEntities: ASTNode[];
-  childEntities: ASTNode[];
-
-  identifiers: string[];
-  bindings: Binding[];
+export default class Fragment extends Component {
   reactives: Statement[];
-  props: Props;
-  listeners: Listener[];
   residuals: Node[];
   blocks: Component[];
-
+  props: Props;
   ast: Node[];
 
   constructor(parsed: CompilerParams) {
-    this.allEntities = parsed.nodes;
+    super(parsed);
+    ``;
     this.rootEntities = parsed.nodes.filter((node) => !node.parent);
     this.childEntities = parsed.nodes.filter((node) => node.parent);
-
-    this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
-    this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
-    this.reactives = parsed.reactives || [];
-    this.props = parsed.props || {};
-    this.listeners = parsed.listeners;
+    this.residuals = parsed.reactives || [];
     this.residuals = parsed.residuals || [];
     this.blocks = parsed.blocks || [];
-    console.log(print((this.blocks[0] as EachBlockComponent).render_each_block()).code);
+    this.props = parsed.props || {};
 
     this.ast = [];
 
@@ -65,7 +42,7 @@ export default class Compiler {
 
         if (mutated && mutated.some((m) => props.indexOf(m) > -1)) {
           this.replace(
-            x`$$invalidate($$dirty, '${mutated.join(',')}', (${print(node).code}), updateFragment)`,
+            x`$$invalidate($$dirty, '${mutated.join(',')}', (${print(node).code}), app.p)`,
           );
         }
       },
@@ -77,17 +54,11 @@ export default class Compiler {
     this.ast = b`
     import { $$invalidate, $$element, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
 
-      let {${Object.keys(this.props).join(',')}} = ${util.inspect(
-      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
-    )}
-
-      let $$dirty = []
-
-      ${this.residuals}
+      function create_fragment() {
       let ${this.identifiers
         .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
         .join(',')}
-     export function registerFragment() {
+     return { c() {
         ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node)).join('\n')}
         ${this.allEntities
           .map((node) => generateAttrStr(this.identifiers, node))
@@ -101,8 +72,8 @@ export default class Compiler {
               })`,
           )
           .join('\n')}
-      }
-      export function mountFragment(target) {
+      },
+      m(target) {
         ${this.childEntities
           .map(
             (node) =>
@@ -114,8 +85,8 @@ export default class Compiler {
         ${this.rootEntities
           .map((node) => `target.append(${this.identifiers[node.index]})`)
           .join('\n')}
-      }
-      export function updateFragment() {
+      },
+      p() {
         ${this.bindings
           .map(
             (b) =>
@@ -131,6 +102,17 @@ export default class Compiler {
           .join('\n')}
         $$dirty = []
       }
+    }
+    }
+    export const app = create_fragment();
+    
+    let {${Object.keys(this.props).join(',')}} = ${util.inspect(
+      Object.fromEntries(Object.entries(this.props).map(([k, v]) => [k, destringify(v)])),
+    )}
+  
+        let $$dirty = []
+  
+        ${this.residuals}
     `;
 
     return this.ast;
