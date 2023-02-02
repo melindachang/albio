@@ -95,13 +95,26 @@ export default class EachBlockComponent extends BlockComponent {
                   .map((dep) => `\"${dep}\"`)
                   .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
                   this.identifiers[binding.index] + '_value'
-                } = eval("${binding.data}") + '')) $$setData(${
-                  this.identifiers[binding.index]
-                },${this.identifiers[binding.index] + '_value'})`,
+                } = eval("${binding.data}") + '')) $$setData(${this.identifiers[binding.index]},${
+                  this.identifiers[binding.index] + '_value'
+                })`,
             )}
           },
         }
       }
     `;
+  }
+
+  populateDeps(bindings: Binding[], keys: IterableKey[], iterable: string): void {
+    bindings.forEach((binding) => {
+      binding.deps = [];
+      if (keys && keys.map((key) => key.name).includes(binding.data)) {
+        binding.deps.push(iterable);
+      } else {
+        const expression: Node = parse(binding.data);
+        const { scope } = analyze(expression);
+        [...scope.references].forEach((ref) => binding.deps.push(ref));
+      }
+    });
   }
 }

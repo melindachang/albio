@@ -19,13 +19,12 @@ export default class Renderer {
     this.ast = b`
     import { $$invalidate, $$element, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
     
-    
     let {${Object.keys(this.fragment.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.fragment.props).map(([k, v]) => [k, destringify(v)])),
     )}
-        let $$dirty = []
-        ${this.fragment.residuals}
 
+    let $$dirty = []
+    ${this.fragment.residuals}
         
     ${this.fragment.render_fragment(this.blocks)}
     ${this.blocks.map((block) => block.render())};
