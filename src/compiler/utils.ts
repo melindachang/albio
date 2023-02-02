@@ -18,28 +18,24 @@ export function destringify(str: string): string {
   return eval(`(function() {return ${str}})()`);
 }
 
-export function generateNodeStr(identifiers: string[], node: ASTNode): string {
+export function generateNodeStr(identifiers: string[], node: ASTNode): Node[] {
   const identifier = identifiers[node.index];
   switch (node.type) {
     case 'Text':
-      return `${identifier} = $$text("${(node as TextTag).value.replace(/\n/g, '\\n')}")`;
+      return code_red.b`${identifier} = $$text("${(node as TextTag).value}")`;
     case 'Binding':
-      return `${identifier}_value = $$text(${
+      return code_red.b`${identifier}_value = $$text(${
         (node as Binding).data
       })\n${identifier} = $$text(${identifier}_value.data)`;
     default:
-      return `${identifier} = $$element("${node.name}")`;
+      return code_red.b`${identifier} = $$element("${node.name}")`;
   }
 }
 
-export function generateAttrStr(identifiers: string[], node: ASTNode): string[] {
+export function generateAttrStr(identifiers: string[], node: ASTNode): Node[] {
   if (!(node as ElementTag).attrs) return [];
   const identifier = identifiers[node.index];
   return Object.entries((node as ElementTag).attrs!).map(
-    ([name, value]) => `${identifier}.setAttribute("${name}", "${value}")`,
+    ([name, value]) => code_red.x`${identifier}.setAttribute("${name}", "${value}")`,
   );
-}
-
-export function createUniqueName(): string {
-  return `${(Math.random() + 1).toString(36).substring(2, 5)}`;
 }

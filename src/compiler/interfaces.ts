@@ -17,6 +17,8 @@ interface BaseNode {
   type: string;
   parent?: ASTNode;
   children?: ASTNode[];
+  next?: ASTNode;
+  prev?: ASTNode;
   startIndex: number | null;
   endIndex: number | null;
 }
@@ -63,8 +65,6 @@ export interface Binding extends BaseNode {
   default_value: string;
   data: string;
   deps: string[];
-  startIndex: undefined;
-  endIndex: undefined;
 }
 
 export interface Props {
@@ -84,4 +84,9 @@ export interface CompilerParams {
   reactives?: Statement[];
   residuals?: Node[];
   blocks?: Component[];
+}
+
+export interface IterableKey {
+  name: string;
+  variableRef: string;
 }

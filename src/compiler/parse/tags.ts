@@ -1,6 +1,5 @@
 import { Listener, TextTag, ElementTag, type ASTNode, Binding } from '../interfaces';
 import { Text, Element, Comment, type AnyNode } from 'domhandler';
-import { TagToken } from 'parse5/dist/common/token';
 
 export function parseTags(
   nodes: ASTNode[],
@@ -30,7 +29,7 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
 
     if (startCode === 0) {
       endCode = flag.lastIndexOf('}');
-      index = addBinding(nodes, index, flag.substring(1, endCode), parent);
+      index = addBinding(nodes, index, flag.substring(1, endCode), tag, parent);
       flag = flag.substring(endCode + 1);
       if (!flag) break;
     } else if (startCode < 0) {
@@ -70,6 +69,7 @@ export function addBinding(
   nodes: ASTNode[],
   index: number,
   data: string,
+  tag: AnyNode,
   parent?: ASTNode,
 ): number {
   nodes.push({
@@ -77,6 +77,8 @@ export function addBinding(
     type: 'Binding',
     data,
     parent,
+    startIndex: tag.startIndex,
+    endIndex: tag.endIndex,
   } as Binding);
 
   return index + 1;

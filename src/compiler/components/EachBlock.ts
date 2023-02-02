@@ -1,25 +1,28 @@
-import { Binding, EachBlock } from '../interfaces';
-import { createUniqueName, generateAttrStr, generateNodeStr, parse } from '../utils';
-import { analyze } from 'periscopic';
-import { x } from 'code-red';
+import { Binding, EachBlock, IterableKey } from '../interfaces';
+import { generateAttrStr, generateNodeStr, parse } from '../utils';
+import { b, x } from 'code-red';
 import { Node } from 'estree';
 import BlockComponent from './Block';
-
-interface IterableKey {
-  name: string;
-  variableRef: string;
-}
+import { analyze } from 'periscopic';
 
 export default class EachBlockComponent extends BlockComponent {
   tag: string;
   iterable: string;
   keys: IterableKey[] = [];
+  vars: {
+    block_arr_name: string;
+    create_func_name: string;
+  };
 
   constructor(block: EachBlock) {
-    super(block, 'E');
-    this.tag = createUniqueName();
+    super(block);
     const segments = (this.startNode as Binding).data.split(' ');
     this.iterable = segments[1];
+
+    this.vars = {
+      block_arr_name: `each_blocks_${this.index}`,
+      create_func_name: `create_each_block_${this.index}`,
+    };
 
     const regex = /[^\w.-]+/g;
     const i = segments.indexOf('as');
@@ -34,29 +37,69 @@ export default class EachBlockComponent extends BlockComponent {
       const str = segments[i + 1].replace(regex, '');
       this.keys.push({ name: str, variableRef: str });
     }
+    this.populateDeps(this.bindings, this.keys, this.iterable);
   }
 
-  // FINISH: each iteration is its own component with its own lifecycle stored inside create_each_block 
+  // FINISH: each iteration is its own component with its own lifecycle stored inside create_each_block
 
-  render_each_block(): Node {
+  render(): Node {
     return x`
-      function create_each_block_${this.tag}(dep) {
-        
-        let iters = []
+      function ${this.vars.create_func_name}(i) {
+        let ${this.keys
+          .map(
+            (key) =>
+              `${key.name} = ${this.iterable}[i]${
+                key.name === key.variableRef ? '' : '.' + key.name
+              }`,
+          )
+          .join(',')}
 
-        function register_node() {
-          let ${this.identifiers.join(',')}
+         let ${this.identifiers
+           .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
+           .join(',')}
 
-        }
-
-        for (let #i = 0; #i < Object.keys(dep).length; #i++) iters[i] = register_node();
+          let main
 
         return {
           c() {
+            main = $$element("main")
+            ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node))}
+
+            ${this.allEntities
+              .map((node) => generateAttrStr(this.identifiers, node))
+              .filter((list) => list.length > 0)}
+
+            ${this.listeners.map(
+              (listener) =>
+                `${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
+                  listener.handler
+                })`,
+            )}
           },
-          m() {
+          m(target, anchor) {
+            ${this.childEntities.map(
+              (node) =>
+                x`${this.identifiers[node.parent!.index]}.appendChild(${
+                  this.identifiers[node.index]
+                })`,
+            )}
+              
+            ${this.rootEntities.map((node) => x`main.append(${this.identifiers[node.index]})`)}
+
+            target.insertBefore(main, anchor || null)
           },
-          u() {}
+          p() {
+            ${this.bindings.map(
+              (binding) =>
+                b`if ($$checkDirtyDeps($$dirty, [${binding.deps
+                  .map((dep) => `\"${dep}\"`)
+                  .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
+                  this.identifiers[binding.index] + '_value'
+                } = eval("${binding.data}") + '')) $$setData(${
+                  this.identifiers[binding.index]
+                },${this.identifiers[binding.index] + '_value'})`,
+            )}
+          },
         }
       }
     `;
