@@ -1,8 +1,5 @@
-import { Node } from 'estree';
-import { analyze } from 'periscopic';
-import { ASTNode, Binding, IterableKey, Listener } from '../interfaces';
+import { ASTNode, Binding, Listener } from '../interfaces';
 import { CompilerParams } from '../interfaces';
-import { parse } from '../utils';
 
 export default abstract class Component {
   allEntities: ASTNode[];

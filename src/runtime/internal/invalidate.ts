@@ -1,11 +1,8 @@
 import { scheduleUpdate } from './schedule';
 
-export function $$invalidate(dirty: string[], names: string, ret: any, update: () => void): any {
-  let dependencies: Set<string> = new Set();
+export function $$invalidate(dirty: Set<string>, names: string, ret: any, update: () => void): any {
   const toDirty = names.split(',');
-  toDirty.forEach((name) => dependencies.add(name));
-  [...dependencies].forEach((dependency) => dirty.push(dependency));
+  toDirty.forEach((name) => dirty.add(name));
   scheduleUpdate(update);
-
   return ret;
 }

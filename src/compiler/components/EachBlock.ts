@@ -1,4 +1,4 @@
-import { Binding, EachBlock, IterableKey } from '../interfaces';
+import { ASTNode, Binding, EachBlock, IterableKey } from '../interfaces';
 import { generateAttrStr, generateNodeStr, parse } from '../utils';
 import { b, x } from 'code-red';
 import { Node } from 'estree';
@@ -40,7 +40,44 @@ export default class EachBlockComponent extends BlockComponent {
     this.populateDeps(this.bindings, this.keys, this.iterable);
   }
 
-  // FINISH: each iteration is its own component with its own lifecycle stored inside create_each_block
+  render_each_for(node: Node | Node[]): Node[] {
+    return b`
+      for (let #i = 0; #i < Object.keys(${this.iterable}).length; #i += 1) {
+        ${node}
+      }
+    `;
+  }
+
+  render_each_populate(): Node {
+    return x`${this.vars.block_arr_name}[#i] = ${this.vars.create_func_name}(#i)`;
+  }
+
+  render_each_create(): Node {
+    return x`${this.vars.block_arr_name}[#i].c()`;
+  }
+
+  render_each_mount(nodes: ASTNode[], identifiers: string[]): Node {
+    return x`
+    ${this.vars.block_arr_name}[#i].m(${
+      this.startNode.parent ? identifiers[this.startNode.parent.index] : 'mountPoint'
+    }, ${
+      nodes.some((node) => this.endNode.endIndex === node.startIndex)
+        ? identifiers[nodes.find((node) => this.endNode.endIndex === node.startIndex).index]
+        : 'null'
+    })`;
+  }
+
+  render_each_update(nodes: ASTNode[], identifiers: string[]): Node[] {
+    return b`
+      if (${this.vars.block_arr_name}[#i]) {
+        ${this.vars.block_arr_name}[#i].p()
+      } else {
+        ${this.render_each_populate()}
+        ${this.render_each_create()}
+        ${this.render_each_mount(nodes, identifiers)}
+      }
+    `;
+  }
 
   render(): Node {
     return x`

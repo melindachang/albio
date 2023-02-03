@@ -11,7 +11,7 @@ export function $$text(data: any): Text {
   return document.createTextNode(data);
 }
 
-export function $$checkDirtyDeps(dirt: string[], deps: string[]): boolean {
-  if (dirt.length === 0) return false;
-  return dirt.some((key) => deps.indexOf(key) > -1);
+export function $$checkDirtyDeps(dirt: Set<string>, deps: string[]): boolean {
+  if (!dirt.size) return false;
+  return [...dirt].some((key) => deps.indexOf(key) > -1);
 }

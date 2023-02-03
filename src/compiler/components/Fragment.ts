@@ -1,6 +1,6 @@
 import { fetchObject, generateAttrStr, generateNodeStr, parse } from '../utils';
 import { Node, Statement } from 'estree';
-import { Binding, CompilerParams, IterableKey, Props } from '../interfaces';
+import { Binding, CompilerParams, Props } from '../interfaces';
 import Component from './Component';
 import { analyze, extract_names } from 'periscopic';
 import { walk } from 'estree-walker';
@@ -61,12 +61,9 @@ export default class Fragment extends Component {
           
       ${blocks
         .filter((block) => block.type === 'each')
-        .map(
-          (block: EachBlockComponent) =>
-            b`for (let #i = 0; #i < Object.keys(${block.iterable}).length; #i += 1) {
-                ${block.vars.block_arr_name}[#i] = ${block.vars.create_func_name}(#i);
-                }`,
-        )}
+        .map((block: EachBlockComponent) => block.render_each_for(block.render_each_populate()))}
+
+        let mountPoint;
             
         return {
           c() {
@@ -77,11 +74,8 @@ export default class Fragment extends Component {
   
             ${blocks
               .filter((block) => block.type === 'each')
-              .map(
-                (block: EachBlockComponent) =>
-                  b`for (let #i = 0; #i < Object.keys(${block.iterable}).length; #i += 1) {
-                        ${block.vars.block_arr_name}[#i].c();
-                        }`,
+              .map((block: EachBlockComponent) =>
+                block.render_each_for(block.render_each_create()),
               )}
   
             ${this.listeners.map(
@@ -92,6 +86,7 @@ export default class Fragment extends Component {
             )}
           },
           m(target) {
+            mountPoint = target;
             ${this.childEntities.map(
               (node) =>
                 x`${this.identifiers[node.parent!.index]}.appendChild(${
@@ -103,26 +98,16 @@ export default class Fragment extends Component {
   
             ${blocks
               .filter((block) => block.type === 'each')
-              .map(
-                (block: EachBlockComponent) =>
-                  b`for (let #i = 0; #i < Object.keys(${block.iterable}).length; #i += 1) {
-                          ${block.vars.block_arr_name}[#i].m(${
-                    block.startNode.parent
-                      ? this.identifiers[block.startNode.parent.index]
-                      : 'target'
-                  }, ${
-                    this.allEntities.some((node) => block.endNode.endIndex === node.startIndex)
-                      ? this.identifiers[
-                          this.allEntities.find(
-                            (node) => block.endNode.endIndex === node.startIndex,
-                          ).index
-                        ]
-                      : 'null'
-                  });
-                  }`,
+              .map((block: EachBlockComponent) =>
+                block.render_each_for(block.render_each_mount(this.allEntities, this.identifiers)),
               )}
           },
           p() {
+            ${blocks
+              .filter((block) => block.type === 'each')
+              .map((block: EachBlockComponent) =>
+                block.render_each_for(block.render_each_update(this.allEntities, this.identifiers)),
+              )}
             ${this.bindings.map(
               (binding) =>
                 b`if ($$checkDirtyDeps($$dirty, [${binding.deps
@@ -133,7 +118,7 @@ export default class Fragment extends Component {
                   this.identifiers[binding.index] + '_value'
                 })`,
             )}
-            $$dirty = []
+            $$dirty.clear()
           }
         }
       }`;
@@ -142,6 +127,7 @@ export default class Fragment extends Component {
 
   populateDeps(bindings: Binding[]): void {
     bindings.forEach((binding) => {
+      binding.deps = [];
       const expression: Node = parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => binding.deps.push(ref));

@@ -23,7 +23,7 @@ export default class Renderer {
       Object.fromEntries(Object.entries(this.fragment.props).map(([k, v]) => [k, destringify(v)])),
     )}
 
-    let $$dirty = []
+    let $$dirty = new Set();
     ${this.fragment.residuals}
         
     ${this.fragment.render_fragment(this.blocks)}
