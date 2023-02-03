@@ -70,7 +70,7 @@ export default class EachBlockComponent extends BlockComponent {
   render_each_update(nodes: ASTNode[], identifiers: string[]): Node[] {
     return b`
       if (${this.vars.block_arr_name}[#i]) {
-        ${this.vars.block_arr_name}[#i].p()
+        ${this.vars.block_arr_name}[#i].p(dirty)
       } else {
         ${this.render_each_populate()}
         ${this.render_each_create()}
@@ -79,17 +79,20 @@ export default class EachBlockComponent extends BlockComponent {
     `;
   }
 
+  render_each_current(): Node {
+    return x`
+    ${this.keys
+      .map(
+        (key) =>
+          `${key.name} = ${this.iterable}[i]${key.name === key.variableRef ? '' : '.' + key.name}`,
+      )
+      .join(',')}`;
+  }
+
   render(): Node {
     return x`
       function ${this.vars.create_func_name}(i) {
-        let ${this.keys
-          .map(
-            (key) =>
-              `${key.name} = ${this.iterable}[i]${
-                key.name === key.variableRef ? '' : '.' + key.name
-              }`,
-          )
-          .join(',')}
+        let ${this.render_each_current()}
 
          let ${this.identifiers
            .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
@@ -125,11 +128,17 @@ export default class EachBlockComponent extends BlockComponent {
 
             target.insertBefore(main, anchor || null)
           },
-          p() {
+          p(dirty) {
+            ${this.render_each_current()}
+
             ${this.bindings.map(
               (binding) =>
-                b`if ($$checkDirtyDeps($$dirty, [${binding.deps
-                  .map((dep) => `\"${dep}\"`)
+                b`if ($$checkDirtyDeps(dirty, [${binding.deps
+                  .map((dep) =>
+                    this.keys.map((key) => key.name).includes(dep)
+                      ? `\"${this.iterable}\"`
+                      : `\"${dep}\"`,
+                  )
                   .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
                   this.identifiers[binding.index] + '_value'
                 } = eval("${binding.data}") + '')) $$setData(${this.identifiers[binding.index]},${

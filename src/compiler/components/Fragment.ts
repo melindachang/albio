@@ -102,7 +102,7 @@ export default class Fragment extends Component {
                 block.render_each_for(block.render_each_mount(this.allEntities, this.identifiers)),
               )}
           },
-          p() {
+          p(dirty) {
             ${blocks
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) =>
@@ -110,7 +110,7 @@ export default class Fragment extends Component {
               )}
             ${this.bindings.map(
               (binding) =>
-                b`if ($$checkDirtyDeps($$dirty, [${binding.deps
+                b`if ($$checkDirtyDeps(dirty, [${binding.deps
                   .map((dep) => `\"${dep}\"`)
                   .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
                   this.identifiers[binding.index] + '_value'
@@ -118,7 +118,6 @@ export default class Fragment extends Component {
                   this.identifiers[binding.index] + '_value'
                 })`,
             )}
-            $$dirty.clear()
           }
         }
       }`;
