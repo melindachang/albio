@@ -1,5 +1,12 @@
+import { x } from 'code-red';
+import { Expression } from 'estree';
 import { ASTNode, Binding, Listener } from '../interfaces';
 import { CompilerParams } from '../interfaces';
+
+type BitMask = {
+  n: number;
+  names: string[];
+};
 
 export default abstract class Component {
   allEntities: ASTNode[];
@@ -17,4 +24,26 @@ export default abstract class Component {
   }
 
   abstract populateDeps(...args: any): void;
+  dirty(names: string[], props: string[]): Expression {
+    const get_bitmask = () => {
+      const bitmask: BitMask[] = [];
+      names.forEach((name) => {
+        const val = props.indexOf(name);
+        const i = (val / 31) | 0;
+        const n = 1 << val % 31;
+
+        if (!bitmask[i]) bitmask[i] = { n: 0, names: [] };
+
+        bitmask[i].n |= n;
+        bitmask[i].names.push(name);
+      });
+      return bitmask;
+    };
+    const bitmask = get_bitmask();
+    return bitmask
+      .map((b, i) => ({ b, i }))
+      .filter(({ b }) => b)
+      .map(({ b, i }) => x`$$dirty[${i}] & ${b.n}`)
+      .reduce((left, right) => x`${left} | ${right}`);
+  }
 }

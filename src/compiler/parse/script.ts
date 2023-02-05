@@ -1,5 +1,5 @@
 import { Props } from '../interfaces';
-import { parse } from 'acorn';
+import { parse } from '../utils';
 import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
 import { Element, Text } from 'domhandler';
@@ -20,11 +20,7 @@ export function parseCode(scripts: Element[]) {
 }
 
 export function getProgram(source: string) {
-  const program = parse(source, {
-    sourceType: 'module',
-    ecmaVersion: 12,
-    locations: true,
-  }) as any as Program;
+  const program = parse(source) as any as Program;
   return program;
 }
 

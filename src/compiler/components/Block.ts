@@ -20,5 +20,5 @@ export default abstract class BlockComponent extends Component {
     this.identifiers = this.identifiers.map((el) => this.type + el);
   }
 
-  abstract render(): Node;
+  abstract render(...args: any): Node;
 }

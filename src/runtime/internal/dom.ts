@@ -10,8 +10,3 @@ export function $$setData(text: Text, data: any): void {
 export function $$text(data: any): Text {
   return document.createTextNode(data);
 }
-
-export function $$checkDirtyDeps(dirt: Set<string>, deps: string[]): boolean {
-  if (!dirt.size) return false;
-  return [...dirt].some((key) => deps.indexOf(key) > -1);
-}

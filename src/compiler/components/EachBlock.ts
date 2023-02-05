@@ -1,4 +1,4 @@
-import { ASTNode, Binding, EachBlock, IterableKey } from '../interfaces';
+import { ASTNode, Binding, EachBlock, IterableKey, Props } from '../interfaces';
 import { generateAttrStr, generateNodeStr, parse } from '../utils';
 import { b, x } from 'code-red';
 import { Node } from 'estree';
@@ -12,17 +12,14 @@ export default class EachBlockComponent extends BlockComponent {
   vars: {
     block_arr_name: string;
     create_func_name: string;
+    block_arr_length: string;
+    unique_deps: string[];
   };
 
   constructor(block: EachBlock) {
     super(block);
     const segments = (this.startNode as Binding).data.split(' ');
     this.iterable = segments[1];
-
-    this.vars = {
-      block_arr_name: `each_blocks_${this.index}`,
-      create_func_name: `create_each_block_${this.index}`,
-    };
 
     const regex = /[^\w.-]+/g;
     const i = segments.indexOf('as');
@@ -38,11 +35,25 @@ export default class EachBlockComponent extends BlockComponent {
       this.keys.push({ name: str, variableRef: str });
     }
     this.populateDeps(this.bindings, this.keys, this.iterable);
+    const all_deps: string[] = [];
+    this.bindings.map((binding) => binding.deps).forEach((deps) => all_deps.push(...deps));
+    this.vars = {
+      block_arr_name: `each_blocks_${this.index}`,
+      create_func_name: `create_each_block_${this.index}`,
+      block_arr_length: `each_block_${this.index}_length`,
+      unique_deps: [...new Set(all_deps)],
+    };
   }
 
-  render_each_for(node: Node | Node[]): Node[] {
+  render_each_for(reset: boolean, node: Node | Node[]): Node[] {
+    const dec = reset ? b`let #i` : ``;
+    const dec2 = reset ? x`#i = 0` : ``;
+    const operableLength = reset
+      ? x`${this.iterable}.length`
+      : x`${this.vars.block_arr_length}`;
     return b`
-      for (let #i = 0; #i < Object.keys(${this.iterable}).length; #i += 1) {
+      ${dec}
+      for (${dec2}; #i < ${operableLength}; #i += 1) {
         ${node}
       }
     `;
@@ -79,6 +90,10 @@ export default class EachBlockComponent extends BlockComponent {
     `;
   }
 
+  render_each_detach() {
+    return x`${this.vars.block_arr_name}[#i].d()`;
+  }
+
   render_each_current(): Node {
     return x`
     ${this.keys
@@ -89,7 +104,7 @@ export default class EachBlockComponent extends BlockComponent {
       .join(',')}`;
   }
 
-  render(): Node {
+  render(props: string[]): Node {
     return x`
       function ${this.vars.create_func_name}(i) {
         let ${this.render_each_current()}
@@ -98,11 +113,8 @@ export default class EachBlockComponent extends BlockComponent {
            .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
            .join(',')}
 
-          let main
-
         return {
           c() {
-            main = $$element("main")
             ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node))}
 
             ${this.allEntities
@@ -117,6 +129,10 @@ export default class EachBlockComponent extends BlockComponent {
             )}
           },
           m(target, anchor) {
+            ${this.rootEntities.map(
+              (node) => x`target.insertBefore(${this.identifiers[node.index]}, anchor || null)`,
+            )}
+
             ${this.childEntities.map(
               (node) =>
                 x`${this.identifiers[node.parent!.index]}.appendChild(${
@@ -124,28 +140,29 @@ export default class EachBlockComponent extends BlockComponent {
                 })`,
             )}
               
-            ${this.rootEntities.map((node) => x`main.append(${this.identifiers[node.index]})`)}
-
-            target.insertBefore(main, anchor || null)
           },
           p(dirty) {
             ${this.render_each_current()}
 
             ${this.bindings.map(
               (binding) =>
-                b`if ($$checkDirtyDeps(dirty, [${binding.deps
-                  .map((dep) =>
-                    this.keys.map((key) => key.name).includes(dep)
-                      ? `\"${this.iterable}\"`
-                      : `\"${dep}\"`,
-                  )
-                  .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
+                b`if (${this.dirty(binding.deps, props)} && ${
                   this.identifiers[binding.index] + '_value'
-                } = eval("${binding.data}") + '')) $$setData(${this.identifiers[binding.index]},${
+                } !== (${this.identifiers[binding.index] + '_value'} = (${
+                  binding.data
+                }) + '')) $$setData(${this.identifiers[binding.index]},${
                   this.identifiers[binding.index] + '_value'
                 })`,
             )}
           },
+          d() {
+            ${this.rootEntities.map(
+              (node) =>
+                x`${this.identifiers[node.index]}.parentNode.removeChild(${
+                  this.identifiers[node.index]
+                })`,
+            )}
+          }
         }
       }
     `;
@@ -153,14 +170,13 @@ export default class EachBlockComponent extends BlockComponent {
 
   populateDeps(bindings: Binding[], keys: IterableKey[], iterable: string): void {
     bindings.forEach((binding) => {
-      binding.deps = [];
-      if (keys && keys.map((key) => key.name).includes(binding.data)) {
-        binding.deps.push(iterable);
-      } else {
-        const expression: Node = parse(binding.data);
-        const { scope } = analyze(expression);
-        [...scope.references].forEach((ref) => binding.deps.push(ref));
-      }
+      let deps: Set<string> = new Set();
+      const expression: Node = parse(binding.data);
+      const { scope } = analyze(expression);
+      [...scope.references].forEach((ref) => {
+        keys.map((key) => key.name).includes(ref) ? deps.add(iterable) : deps.add(ref);
+      });
+      binding.deps = [...deps];
     });
   }
 }

@@ -10,3 +10,4 @@ export * from './parse/index';
 export * from './components/index';
 export { default as Renderer } from './render';
 export { type ChildNode, type ParentNode, Element, Text, Comment } from 'domhandler';
+export * from './interfaces';

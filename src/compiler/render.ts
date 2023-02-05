@@ -16,19 +16,21 @@ export default class Renderer {
   }
 
   render_instance(): Node[] {
+    const base_dirty = [];
+    const numProps = Object.keys(this.fragment.props).length;
+    for (let i = 0; i < numProps / 31 + (numProps % 1 === 0 ? 0 : 1); i++) base_dirty.push(-1);
     this.ast = b`
-    import { $$invalidate, $$element, $$setData, $$text, $$checkDirtyDeps } from '/assets/albio_internal.js';
-    
+
     let {${Object.keys(this.fragment.props).join(',')}} = ${util.inspect(
       Object.fromEntries(Object.entries(this.fragment.props).map(([k, v]) => [k, destringify(v)])),
     )}
 
-    let $$dirty = new Set();
+    let $$dirty = [${base_dirty.join(',')}]
     ${this.fragment.residuals}
         
     ${this.fragment.render_fragment(this.blocks)}
-    ${this.blocks.map((block) => block.render())};
-    export const app = create_fragment();
+    ${this.blocks.map((block) => block.render(Object.keys(this.fragment.props)))}
+    export const app = create_fragment()
 
     `;
     return this.ast;

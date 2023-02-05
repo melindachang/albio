@@ -39,7 +39,9 @@ export default class Fragment extends Component {
 
         if (mutated && mutated.some((m) => props.indexOf(m) > -1)) {
           this.replace(
-            x`$$invalidate($$dirty, '${mutated.join(',')}', (${print(node).code}), app.p)`,
+            x`$$invalidate($$dirty, [${mutated.map((m) => props.indexOf(m)).join(',')}], (${
+              print(node).code
+            }), app.p)`,
           );
         }
       },
@@ -56,12 +58,20 @@ export default class Fragment extends Component {
 
       ${blocks
         .filter((block) => block.type === 'each')
-        .map((block: EachBlockComponent) => `let ${block.vars.block_arr_name} = []`)
-        .join('\n')}
+        .map((block: EachBlockComponent) => b`let ${block.vars.block_arr_name} = []`)}
           
       ${blocks
         .filter((block) => block.type === 'each')
-        .map((block: EachBlockComponent) => block.render_each_for(block.render_each_populate()))}
+        .map(
+          (block: EachBlockComponent) =>
+            b`let ${block.vars.block_arr_length} = ${block.vars.block_arr_name}.length`,
+        )}
+
+      ${blocks
+        .filter((block) => block.type === 'each')
+        .map((block: EachBlockComponent) =>
+          block.render_each_for(true, block.render_each_populate()),
+        )}
 
         let mountPoint;
             
@@ -75,7 +85,7 @@ export default class Fragment extends Component {
             ${blocks
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) =>
-                block.render_each_for(block.render_each_create()),
+                block.render_each_for(true, block.render_each_create()),
               )}
   
             ${this.listeners.map(
@@ -99,25 +109,39 @@ export default class Fragment extends Component {
             ${blocks
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) =>
-                block.render_each_for(block.render_each_mount(this.allEntities, this.identifiers)),
+                block.render_each_for(
+                  true,
+                  block.render_each_mount(this.allEntities, this.identifiers),
+                ),
               )}
           },
           p(dirty) {
             ${blocks
               .filter((block) => block.type === 'each')
-              .map((block: EachBlockComponent) =>
-                block.render_each_for(block.render_each_update(this.allEntities, this.identifiers)),
-              )}
+              .map((block: EachBlockComponent) => {
+                return b`
+                if (${this.dirty(block.vars.unique_deps, Object.keys(this.props))}) {
+                  ${block.render_each_for(
+                    true,
+                    block.render_each_update(this.allEntities, this.identifiers),
+                  )}
+                  ${block.render_each_for(false, block.render_each_detach())}
+                  ${block.vars.block_arr_length} = ${block.vars.block_arr_name}.length
+                }
+                `;
+              })}
             ${this.bindings.map(
               (binding) =>
-                b`if ($$checkDirtyDeps(dirty, [${binding.deps
-                  .map((dep) => `\"${dep}\"`)
-                  .join(',')}]) && ${this.identifiers[binding.index] + '_value'} !== (${
+                b`if (${this.dirty(binding.deps, Object.keys(this.props))} && ${
                   this.identifiers[binding.index] + '_value'
-                } = eval("${binding.data}") + '')) $$setData(${this.identifiers[binding.index]},${
+                } !== (${this.identifiers[binding.index] + '_value'} = (${
+                  binding.data
+                }) + '')) $$setData(${this.identifiers[binding.index]},${
                   this.identifiers[binding.index] + '_value'
                 })`,
             )}
+
+            dirty.fill(-1)
           }
         }
       }`;
