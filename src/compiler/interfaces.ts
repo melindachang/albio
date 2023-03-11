@@ -30,6 +30,7 @@ export interface Block {
   endNode: AnyNode | null;
   chunk: AnyNode[];
 }
+
 export interface EachBlock extends Block {
   nodeType: 'each';
 }

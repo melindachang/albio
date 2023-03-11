@@ -1,6 +1,6 @@
 {
   "name": "albio",
-  "version": "1.0.48",
+  "version": "1.0.49",
   "description": "🚀 Tiny compiler-powered reactivity library for sensible web apps",
   "main": "index",
   "module": "index.mjs",
