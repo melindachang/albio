@@ -26,6 +26,7 @@ interface BaseNode {
 export interface Block {
   index: number;
   nodeType: BlockType;
+  parent: AnyNode;
   startNode: AnyNode;
   endNode: AnyNode | null;
   chunk: AnyNode[];
