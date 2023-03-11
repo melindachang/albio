@@ -80,7 +80,6 @@
     "code-red": "^0.2.5",
     "domhandler": "^5.0.3",
     "estree-walker": "^3.0.2",
-    "jest": "^27.5.1",
     "jest-cli": "^29.3.1",
     "parse5": "^7.1.2",
     "parse5-htmlparser2-tree-adapter": "^7.0.0",
