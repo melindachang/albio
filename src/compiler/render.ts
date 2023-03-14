@@ -58,7 +58,7 @@ export default class Renderer {
     return this.ast;
   }
 
-  astToString(): string {
+  ast_to_string(): string {
     return print(this.ast as any as Node).code;
   }
 }

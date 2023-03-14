@@ -4,7 +4,7 @@ import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
 import { Element, Text } from 'domhandler';
 
-export function parseCode(scripts: Element[]) {
+export function parse_code(scripts: Element[]) {
   let source = '';
   let linkedModules: Element[] = [];
 
@@ -19,12 +19,12 @@ export function parseCode(scripts: Element[]) {
   return { source, linkedModules };
 }
 
-export function getProgram(source: string) {
+export function get_program(source: string) {
   const program = parse(source) as any as Program;
   return program;
 }
 
-export function extractScripts(ast: Program) {
+export function extract_scripts(ast: Program) {
   let props: Props = {};
   let reactives: Statement[] = [];
   let residuals: Node[] = [];

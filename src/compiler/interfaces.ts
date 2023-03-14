@@ -27,8 +27,8 @@ export interface Block {
   index: number;
   nodeType: BlockType;
   parent: AnyNode;
-  startNode: AnyNode;
-  endNode: AnyNode | null;
+  start_node: AnyNode;
+  end_node: AnyNode | null;
   chunk: AnyNode[];
 }
 

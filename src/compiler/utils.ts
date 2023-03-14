@@ -10,11 +10,11 @@ export const parse = (source: string): Node =>
     locations: true,
   });
 
-export function isReference(item: Reference | Binding): item is Reference {
+export function is_reference(item: Reference | Binding): item is Reference {
   return (item as Reference).var !== undefined;
 }
 
-export function hasArguments(call: string) {
+export function has_arguments(call: string) {
   const exp = parse(call);
   let args = false;
   walk(exp, {
@@ -25,7 +25,7 @@ export function hasArguments(call: string) {
   return args;
 }
 
-export function generateToggleClassStr(identifiers: string[], ref: Reference): Node {
+export function generate_toggle_class_str(identifiers: string[], ref: Reference): Node {
   return code_red.x`$$toggle_class(${identifiers[ref.index]}, "${ref.var}", ${ref.ref})`;
 }
 
@@ -40,7 +40,7 @@ export function get_associated_events(bound: string): string[] {
   }
 }
 
-export function fetchObject(node: Node): Identifier {
+export function fetch_object(node: Node): Identifier {
   while (node.type === 'MemberExpression') node = node.object;
   return node as Identifier;
 }
@@ -49,7 +49,7 @@ export function destringify(str: string): string {
   return eval(`(function() {return ${str}})()`);
 }
 
-export function generateNodeStr(identifiers: string[], node: ASTNode): Node[] {
+export function generate_node_str(identifiers: string[], node: ASTNode): Node[] {
   const identifier = identifiers[node.index];
   switch (node.type) {
     case 'Text':
@@ -63,7 +63,7 @@ export function generateNodeStr(identifiers: string[], node: ASTNode): Node[] {
   }
 }
 
-export function generateAttrStr(identifiers: string[], node: ASTNode): Node[] {
+export function generate_attr_str(identifiers: string[], node: ASTNode): Node[] {
   if (!(node as ElementTag).attrs) return [];
   const identifier = identifiers[node.index];
   return Object.entries((node as ElementTag).attrs!).map(

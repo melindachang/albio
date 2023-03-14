@@ -1,9 +1,9 @@
 import {
-  fetchObject,
-  generateAttrStr,
-  generateNodeStr,
-  generateToggleClassStr,
-  isReference,
+  fetch_object,
+  generate_attr_str,
+  generate_node_str,
+  generate_toggle_class_str,
+  is_reference,
   parse,
   render_ref_check,
 } from '../utils';
@@ -24,15 +24,15 @@ export default class Fragment extends Component {
 
   constructor(parsed: CompilerParams) {
     super(parsed);
-    this.rootEntities = parsed.nodes.filter((node) => !node.parent);
-    this.childEntities = parsed.nodes.filter((node) => node.parent);
+    this.root_entities = parsed.nodes.filter((node) => !node.parent);
+    this.child_entities = parsed.nodes.filter((node) => node.parent);
     this.residuals = parsed.reactives || [];
     this.residuals = parsed.residuals || [];
     this.props = parsed.props || {};
     this.ast = [];
-    this.populateDeps(this.bindings);
-    this.populateDeps(this.references);
-    this.populateDeps(this.classReferences);
+    this.populate_deps(this.bindings);
+    this.populate_deps(this.references);
+    this.populate_deps(this.class_references);
   }
 
   invalidateResiduals(ast: Node): void {
@@ -41,9 +41,9 @@ export default class Fragment extends Component {
       enter(node: any) {
         let mutated: string[];
         if (node.type === 'AssignmentExpression') {
-          mutated = extract_names(fetchObject(node.left));
+          mutated = extract_names(fetch_object(node.left));
         } else if (node.type === 'UpdateExpression') {
-          mutated = extract_names(fetchObject(node.argument));
+          mutated = extract_names(fetch_object(node.argument));
         }
 
         if (mutated && mutated.some((m) => props.indexOf(m) > -1)) {
@@ -86,9 +86,9 @@ export default class Fragment extends Component {
             
         return {
           c() {
-            ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node))}
-            ${this.allEntities
-              .map((node) => generateAttrStr(this.identifiers, node))
+            ${this.all_entities.map((node) => generate_node_str(this.identifiers, node))}
+            ${this.all_entities
+              .map((node) => generate_attr_str(this.identifiers, node))
               .filter((list) => list.length)}
 
   
@@ -105,7 +105,7 @@ export default class Fragment extends Component {
                 })`,
             )}
 
-            ${this.classReferences.map((r) => generateToggleClassStr(this.identifiers, r))}
+            ${this.class_references.map((r) => generate_toggle_class_str(this.identifiers, r))}
             ${this.references
               .filter((r) => r.assoc_events)
               .map((r) => {
@@ -118,21 +118,21 @@ export default class Fragment extends Component {
           },
           m(target) {
             mountPoint = target;
-            ${this.childEntities.map(
+            ${this.child_entities.map(
               (node) =>
                 x`${this.identifiers[node.parent!.index]}.appendChild(${
                   this.identifiers[node.index]
                 })`,
             )}
   
-            ${this.rootEntities.map((node) => x`target.append(${this.identifiers[node.index]})`)}
+            ${this.root_entities.map((node) => x`target.append(${this.identifiers[node.index]})`)}
   
             ${blocks
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) =>
                 block.render_each_for(
                   true,
-                  block.render_each_mount(this.allEntities, this.identifiers),
+                  block.render_each_mount(this.all_entities, this.identifiers),
                 ),
               )}
 
@@ -147,7 +147,7 @@ export default class Fragment extends Component {
                 if (${this.dirty(block.vars.unique_deps, Object.keys(this.props))}) {
                   ${block.render_each_for(
                     true,
-                    block.render_each_update(this.allEntities, this.identifiers),
+                    block.render_each_update(this.all_entities, this.identifiers),
                   )}
                   ${block.render_each_for(false, block.render_each_detach())}
                   ${block.vars.block_arr_name}.length = ${block.iterable}.length
@@ -169,9 +169,9 @@ export default class Fragment extends Component {
               render_ref_check(this.dirty(r.deps, Object.keys(this.props)), this.identifiers, r),
             )}
 
-            ${this.classReferences.map(
+            ${this.class_references.map(
               (r) => b`
-              if (${this.dirty(r.deps, Object.keys(this.props))}) ${generateToggleClassStr(
+              if (${this.dirty(r.deps, Object.keys(this.props))}) ${generate_toggle_class_str(
                 this.identifiers,
                 r,
               )}
@@ -201,10 +201,10 @@ export default class Fragment extends Component {
     return exps;
   }
 
-  populateDeps(bindings: Binding[] | Reference[]): void {
+  populate_deps(bindings: Binding[] | Reference[]): void {
     bindings.forEach((binding) => {
       binding.deps = [];
-      const expression: Node = isReference(binding) ? parse(binding.ref) : parse(binding.data);
+      const expression: Node = is_reference(binding) ? parse(binding.ref) : parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => binding.deps.push(ref));
     });

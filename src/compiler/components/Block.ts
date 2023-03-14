@@ -1,21 +1,21 @@
 import { Node } from 'estree';
 import { ASTNode, Block, BlockType } from '../interfaces';
-import { parseHtml } from '../parse';
+import { parse_html } from '../parse';
 import Component from './Component';
 
 export default abstract class BlockComponent extends Component {
   type: BlockType;
-  startNode: ASTNode;
-  endNode: ASTNode;
+  start_node: ASTNode;
+  end_node: ASTNode;
   index: number;
 
   constructor(block: Block) {
-    super(parseHtml(block.chunk));
+    super(parse_html(block.chunk));
     this.index = block.index;
-    this.startNode = parseHtml([block.startNode]).nodes[0];
-    this.endNode = parseHtml([block.endNode]).nodes[0];
-    this.rootEntities = this.allEntities.filter((node) => node.parent === this.startNode.parent);
-    this.childEntities = this.allEntities.filter((node) => node.parent !== this.startNode.parent);
+    this.start_node = parse_html([block.start_node]).nodes[0];
+    this.end_node = parse_html([block.end_node]).nodes[0];
+    this.root_entities = this.all_entities.filter((node) => node.parent === this.start_node.parent);
+    this.child_entities = this.all_entities.filter((node) => node.parent !== this.start_node.parent);
     this.type = block.nodeType;
   }
 

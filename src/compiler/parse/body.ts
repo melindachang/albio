@@ -4,7 +4,7 @@ import { adapter } from 'parse5-htmlparser2-tree-adapter';
 import { ChildNode, Document, Element, hasChildren, type AnyNode } from 'domhandler';
 import { Block, BlockType } from '../interfaces';
 
-export const extractFragment = (path: string) => {
+export const extract_fragment = (path: string) => {
   const source = path.endsWith('.html') ? readFileSync(path, { encoding: 'utf8' }) : path;
   const fragment: Document = parseFragment(source, {
     treeAdapter: adapter,
@@ -25,14 +25,14 @@ export const extractFragment = (path: string) => {
             index: blocks.length,
             nodeType: nodeType as BlockType,
             parent: child.parent,
-            startNode: child,
-            endNode: null,
+            start_node: child,
+            end_node: null,
             chunk: [],
           });
         } else if (child.data.includes('{/')) {
           const nodeType: string = child.data.split('{/')[1].split('}')[0];
           const i = blocks.reverse().findIndex((b) => b.nodeType === nodeType);
-          blocks[i].endNode = child;
+          blocks[i].end_node = child;
         }
       }
     }
@@ -45,12 +45,12 @@ export const extractFragment = (path: string) => {
 
   for (let i = tags.length - 1; i >= 0; i--) {
     const extract_chunk = (b: Block, tag: AnyNode, parentArr = tags) => {
-      if (tag.parent === b.startNode.parent) {
+      if (tag.parent === b.start_node.parent) {
         const ind = parentArr.indexOf(tag);
-        if (tag.startIndex >= b.startNode.endIndex && tag.endIndex <= b.endNode.startIndex) {
+        if (tag.startIndex >= b.start_node.endIndex && tag.endIndex <= b.end_node.startIndex) {
           b.chunk.push(tag);
           parentArr.splice(ind, 1);
-        } else if (b.startNode === tag || b.endNode === tag) {
+        } else if (b.start_node === tag || b.end_node === tag) {
           parentArr.splice(ind, 1);
         }
       } else if (hasChildren(tag)) {

@@ -1,9 +1,9 @@
 import { ASTNode, Binding, EachBlock, IterableKey, Props, Reference } from '../interfaces';
 import {
-  generateAttrStr,
-  generateNodeStr,
-  generateToggleClassStr,
-  isReference,
+  generate_attr_str,
+  generate_node_str,
+  generate_toggle_class_str,
+  is_reference,
   parse,
   render_ref_check,
 } from '../utils';
@@ -25,7 +25,7 @@ export default class EachBlockComponent extends BlockComponent {
 
   constructor(block: EachBlock) {
     super(block);
-    const segments = (this.startNode as Binding).data.split(' ');
+    const segments = (this.start_node as Binding).data.split(' ');
     this.iterable = segments[1];
 
     const regex = /[^\w.-]+/g;
@@ -41,9 +41,9 @@ export default class EachBlockComponent extends BlockComponent {
       const str = segments[i + 1].replace(regex, '');
       this.keys.push({ name: str, variableRef: str });
     }
-    this.populateDeps(this.bindings, this.keys, this.iterable);
-    this.populateDeps(this.references, this.keys, this.iterable);
-    this.populateDeps(this.classReferences, this.keys, this.iterable);
+    this.populate_deps(this.bindings, this.keys, this.iterable);
+    this.populate_deps(this.references, this.keys, this.iterable);
+    this.populate_deps(this.class_references, this.keys, this.iterable);
     const all_deps: string[] = [];
     this.bindings.map((binding) => binding.deps).forEach((deps) => all_deps.push(...deps));
     this.vars = {
@@ -101,10 +101,10 @@ export default class EachBlockComponent extends BlockComponent {
   render_each_mount(nodes: ASTNode[], identifiers: string[]): Node {
     return x`
     ${this.vars.block_arr_name}[#i].m(${
-      this.startNode.parent ? identifiers[this.startNode.parent.index] : 'mountPoint'
+      this.start_node.parent ? identifiers[this.start_node.parent.index] : 'mountPoint'
     }, ${
-      nodes.some((node) => this.endNode.endIndex === node.startIndex)
-        ? identifiers[nodes.find((node) => this.endNode.endIndex === node.startIndex).index]
+      nodes.some((node) => this.end_node.endIndex === node.startIndex)
+        ? identifiers[nodes.find((node) => this.end_node.endIndex === node.startIndex).index]
         : 'null'
     })`;
   }
@@ -148,10 +148,10 @@ export default class EachBlockComponent extends BlockComponent {
 
         return {
           c() {
-            ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node))}
+            ${this.all_entities.map((node) => generate_node_str(this.identifiers, node))}
 
-            ${this.allEntities
-              .map((node) => generateAttrStr(this.identifiers, node))
+            ${this.all_entities
+              .map((node) => generate_attr_str(this.identifiers, node))
               .filter((list) => list.length > 0)}
 
             ${this.listeners.map(
@@ -175,16 +175,16 @@ export default class EachBlockComponent extends BlockComponent {
               })}
 
               
-            ${this.classReferences.map((r) => generateToggleClassStr(this.identifiers, r))}
+            ${this.class_references.map((r) => generate_toggle_class_str(this.identifiers, r))}
 
 
           },
           m(target, anchor) {
-            ${this.rootEntities.map(
+            ${this.root_entities.map(
               (node) => x`target.insertBefore(${this.identifiers[node.index]}, anchor || null)`,
             )}
 
-            ${this.childEntities.map(
+            ${this.child_entities.map(
               (node) =>
                 x`${this.identifiers[node.parent!.index]}.appendChild(${
                   this.identifiers[node.index]
@@ -212,15 +212,15 @@ export default class EachBlockComponent extends BlockComponent {
               render_ref_check(this.dirty(r.deps, props), this.identifiers, r),
             )}
             
-            ${this.classReferences.map(
+            ${this.class_references.map(
               (r) => b`
-              if (${this.dirty(r.deps, props)}) ${generateToggleClassStr(this.identifiers, r)}
+              if (${this.dirty(r.deps, props)}) ${generate_toggle_class_str(this.identifiers, r)}
             `,
             )}
 
           },
           d(detaching) {
-            ${this.rootEntities.map(
+            ${this.root_entities.map(
               (node) => b`if (detaching) $$detach(${this.identifiers[node.index]})`,
             )}
           }
@@ -229,10 +229,10 @@ export default class EachBlockComponent extends BlockComponent {
     `;
   }
 
-  populateDeps(bindings: Binding[] | Reference[], keys: IterableKey[], iterable: string): void {
+  populate_deps(bindings: Binding[] | Reference[], keys: IterableKey[], iterable: string): void {
     bindings.forEach((binding) => {
       let deps: Set<string> = new Set();
-      const expression: Node = isReference(binding) ? parse(binding.ref) : parse(binding.data);
+      const expression: Node = is_reference(binding) ? parse(binding.ref) : parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => {
         keys.map((key) => key.name).includes(ref) ? deps.add(iterable) : deps.add(ref);

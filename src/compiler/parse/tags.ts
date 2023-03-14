@@ -2,7 +2,7 @@ import { Listener, TextTag, ElementTag, type ASTNode, Binding, Reference } from 
 import { Text, Element, Comment, type AnyNode } from 'domhandler';
 import { get_associated_events } from '../utils';
 
-export function parseTags(
+export function parse_tags(
   nodes: ASTNode[],
   listeners: Listener[],
   references: Reference[],
@@ -12,17 +12,17 @@ export function parseTags(
 ): number {
   tags.forEach((tag) => {
     if (tag.type === 'text') {
-      index = parseText(nodes, index, tag as Text, parent);
+      index = parse_text(nodes, index, tag as Text, parent);
     } else if (tag.type === 'comment') {
-      index = parseComment(nodes, index, tag as Comment, parent);
+      index = parse_comment(nodes, index, tag as Comment, parent);
     } else {
-      index = parseElement(nodes, listeners, references, index, tag as Element, parent);
+      index = parse_element(nodes, listeners, references, index, tag as Element, parent);
     }
   });
   return index;
 }
 
-export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode): number {
+export function parse_text(nodes: ASTNode[], index: number, tag: Text, parent?: ASTNode): number {
   let flag = tag.data;
   let startCode: number, endCode: number;
 
@@ -31,14 +31,14 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
 
     if (startCode === 0) {
       endCode = flag.lastIndexOf('}');
-      index = addBinding(nodes, index, flag.substring(1, endCode), tag, parent);
+      index = add_binding(nodes, index, flag.substring(1, endCode), tag, parent);
       flag = flag.substring(endCode + 1);
       if (!flag) break;
     } else if (startCode < 0) {
-      index = addText(nodes, index, flag, tag, parent);
+      index = add_text(nodes, index, flag, tag, parent);
       break;
     } else {
-      index = addText(nodes, index, flag.substring(0, startCode), tag, parent);
+      index = add_text(nodes, index, flag.substring(0, startCode), tag, parent);
       flag = flag.substring(startCode);
     }
   }
@@ -46,7 +46,7 @@ export function parseText(nodes: ASTNode[], index: number, tag: Text, parent?: A
   return index;
 }
 
-export function addText(
+export function add_text(
   nodes: ASTNode[],
   index: number,
   value: string,
@@ -67,7 +67,7 @@ export function addText(
   return index + 1;
 }
 
-export function addBinding(
+export function add_binding(
   nodes: ASTNode[],
   index: number,
   data: string,
@@ -86,7 +86,7 @@ export function addBinding(
   return index + 1;
 }
 
-export function parseElement(
+export function parse_element(
   nodes: ASTNode[],
   listeners: Listener[],
   references: Reference[],
@@ -140,10 +140,10 @@ export function parseElement(
   };
   nodes.push(el);
 
-  return parseTags(nodes, listeners, references, index + 1, tag.children, el);
+  return parse_tags(nodes, listeners, references, index + 1, tag.children, el);
 }
 
-export function parseComment(
+export function parse_comment(
   nodes: ASTNode[],
   index: number,
   tag: Comment,
@@ -161,7 +161,7 @@ export function parseComment(
   return index + 1;
 }
 
-export function pruneTrailingWhitespace(nodes: ASTNode[]): void {
+export function prune_trailing_whitespace(nodes: ASTNode[]): void {
   let i = nodes.length - 1;
   let node = nodes[i];
 
@@ -172,7 +172,7 @@ export function pruneTrailingWhitespace(nodes: ASTNode[]): void {
   }
 }
 
-export function parseHtml(tags: AnyNode[]): {
+export function parse_html(tags: AnyNode[]): {
   nodes: ASTNode[];
   listeners: Listener[];
   references: Reference[];
@@ -181,8 +181,8 @@ export function parseHtml(tags: AnyNode[]): {
   const listeners: Listener[] = [];
   const references: Reference[] = [];
 
-  parseTags(nodes, listeners, references, 0, tags);
-  if (nodes.length > 0) pruneTrailingWhitespace(nodes);
+  parse_tags(nodes, listeners, references, 0, tags);
+  if (nodes.length > 0) prune_trailing_whitespace(nodes);
 
   return { nodes, listeners, references };
 }

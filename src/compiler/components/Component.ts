@@ -9,25 +9,25 @@ type BitMask = {
 };
 
 export default abstract class Component {
-  allEntities: ASTNode[];
-  rootEntities: ASTNode[];
-  childEntities: ASTNode[];
+  all_entities: ASTNode[];
+  root_entities: ASTNode[];
+  child_entities: ASTNode[];
   bindings: Binding[];
   listeners: Listener[];
   references: Reference[];
-  classReferences: Reference[];
+  class_references: Reference[];
   identifiers: string[];
 
   constructor(parsed: CompilerParams) {
-    this.allEntities = parsed.nodes;
+    this.all_entities = parsed.nodes;
     this.listeners = parsed.listeners;
     this.references = parsed.references.filter((r) => !r.type);
-    this.classReferences = parsed.references.filter((r) => r.type === 'class');
+    this.class_references = parsed.references.filter((r) => r.type === 'class');
     this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
     this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
   }
 
-  abstract populateDeps(...args: any): void;
+  abstract populate_deps(...args: any): void;
   abstract render_handler_func(...args: any): Node[];
   dirty(names: string[], props: string[]): Expression {
     const get_bitmask = () => {
