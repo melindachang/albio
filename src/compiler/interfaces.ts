@@ -80,6 +80,7 @@ export interface Listener {
 }
 
 export interface Reference {
+  type?: string;
   index: number;
   var: string;
   ref: string;

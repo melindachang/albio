@@ -25,6 +25,10 @@ export function hasArguments(call: string) {
   return args;
 }
 
+export function generateToggleClassStr(identifiers: string[], ref: Reference): Node {
+  return code_red.x`$$toggle_class(${identifiers[ref.index]}, "${ref.var}", ${ref.ref})`;
+}
+
 export function get_associated_events(bound: string): string[] {
   switch (bound) {
     case 'value':

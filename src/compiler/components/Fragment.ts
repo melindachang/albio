@@ -2,6 +2,7 @@ import {
   fetchObject,
   generateAttrStr,
   generateNodeStr,
+  generateToggleClassStr,
   isReference,
   parse,
   render_ref_check,
@@ -31,6 +32,7 @@ export default class Fragment extends Component {
     this.ast = [];
     this.populateDeps(this.bindings);
     this.populateDeps(this.references);
+    this.populateDeps(this.classReferences);
   }
 
   invalidateResiduals(ast: Node): void {
@@ -103,6 +105,7 @@ export default class Fragment extends Component {
                 })`,
             )}
 
+            ${this.classReferences.map((r) => generateToggleClassStr(this.identifiers, r))}
             ${this.references
               .filter((r) => r.assoc_events)
               .map((r) => {
@@ -164,6 +167,15 @@ export default class Fragment extends Component {
 
             ${this.references.map((r) =>
               render_ref_check(this.dirty(r.deps, Object.keys(this.props)), this.identifiers, r),
+            )}
+
+            ${this.classReferences.map(
+              (r) => b`
+              if (${this.dirty(r.deps, Object.keys(this.props))}) ${generateToggleClassStr(
+                this.identifiers,
+                r,
+              )}
+            `,
             )}
 
             $$dirty.fill(-1)

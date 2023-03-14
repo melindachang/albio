@@ -1,5 +1,12 @@
 import { ASTNode, Binding, EachBlock, IterableKey, Props, Reference } from '../interfaces';
-import { generateAttrStr, generateNodeStr, isReference, parse, render_ref_check } from '../utils';
+import {
+  generateAttrStr,
+  generateNodeStr,
+  generateToggleClassStr,
+  isReference,
+  parse,
+  render_ref_check,
+} from '../utils';
 import { b, x } from 'code-red';
 import { Node } from 'estree';
 import BlockComponent from './Block';
@@ -36,6 +43,7 @@ export default class EachBlockComponent extends BlockComponent {
     }
     this.populateDeps(this.bindings, this.keys, this.iterable);
     this.populateDeps(this.references, this.keys, this.iterable);
+    this.populateDeps(this.classReferences, this.keys, this.iterable);
     const all_deps: string[] = [];
     this.bindings.map((binding) => binding.deps).forEach((deps) => all_deps.push(...deps));
     this.vars = {
@@ -166,6 +174,10 @@ export default class EachBlockComponent extends BlockComponent {
                 });
               })}
 
+              
+            ${this.classReferences.map((r) => generateToggleClassStr(this.identifiers, r))}
+
+
           },
           m(target, anchor) {
             ${this.rootEntities.map(
@@ -199,6 +211,13 @@ export default class EachBlockComponent extends BlockComponent {
             ${this.references.map((r) =>
               render_ref_check(this.dirty(r.deps, props), this.identifiers, r),
             )}
+            
+            ${this.classReferences.map(
+              (r) => b`
+              if (${this.dirty(r.deps, props)}) ${generateToggleClassStr(this.identifiers, r)}
+            `,
+            )}
+
           },
           d(detaching) {
             ${this.rootEntities.map(

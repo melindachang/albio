@@ -21,3 +21,7 @@ export function $$detach(node: any) {
     node.parentNode.removeChild(node);
   }
 }
+
+export function $$toggle_class(el: any, name: string, toggle: boolean) {
+  el.classList[toggle ? "add" : "remove"](name);
+}

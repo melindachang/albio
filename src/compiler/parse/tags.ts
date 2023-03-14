@@ -113,6 +113,16 @@ export function parseElement(
           ref: v,
           assoc_events,
         });
+      } else if (k.match(/^class:/)) {
+        const bound = k.split(':')[1];
+        // Var = Class Name
+        // Ref = dependent
+        references.push({
+          type: 'class',
+          index,
+          var: bound,
+          ref: v,
+        });
       } else {
         attrs[k] = v;
       }

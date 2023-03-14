@@ -15,12 +15,14 @@ export default abstract class Component {
   bindings: Binding[];
   listeners: Listener[];
   references: Reference[];
+  classReferences: Reference[];
   identifiers: string[];
 
   constructor(parsed: CompilerParams) {
     this.allEntities = parsed.nodes;
     this.listeners = parsed.listeners;
-    this.references = parsed.references;
+    this.references = parsed.references.filter((r) => !r.type);
+    this.classReferences = parsed.references.filter((r) => r.type === 'class');
     this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
     this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
   }
