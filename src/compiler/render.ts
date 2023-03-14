@@ -54,8 +54,6 @@ export default class Renderer {
     
     
     export const app = create_fragment()
-
-
     `;
     return this.ast;
   }

@@ -15,3 +15,9 @@ export function $$setAttrData(el: any, attr: string, data: any): void {
 export function $$text(data: any): Text {
   return document.createTextNode(data);
 }
+
+export function $$detach(node: any) {
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+}

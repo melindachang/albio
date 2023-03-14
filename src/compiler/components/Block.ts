@@ -17,7 +17,6 @@ export default abstract class BlockComponent extends Component {
     this.rootEntities = this.allEntities.filter((node) => node.parent === this.startNode.parent);
     this.childEntities = this.allEntities.filter((node) => node.parent !== this.startNode.parent);
     this.type = block.nodeType;
-    this.identifiers = this.identifiers.map((el) => this.type + el);
   }
 
   abstract render(...args: any): Node;

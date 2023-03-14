@@ -1,4 +1,11 @@
-import { fetchObject, generateAttrStr, generateNodeStr, isReference, parse } from '../utils';
+import {
+  fetchObject,
+  generateAttrStr,
+  generateNodeStr,
+  isReference,
+  parse,
+  render_ref_check,
+} from '../utils';
 import { Node, Statement } from 'estree';
 import { Binding, CompilerParams, Props, Reference } from '../interfaces';
 import Component from './Component';
@@ -61,15 +68,12 @@ export default class Fragment extends Component {
 
       ${blocks
         .filter((block) => block.type === 'each')
-        .map((block: EachBlockComponent) => b`let ${block.vars.block_arr_name} = []`)}
-          
-      ${blocks
-        .filter((block) => block.type === 'each')
         .map(
-          (block: EachBlockComponent) =>
-            b`let ${block.vars.block_arr_length} = ${block.vars.block_arr_name}.length`,
+          (block: EachBlockComponent) => b`
+            let ${block.vars.block_arr_name} = []
+        `,
         )}
-
+          
       ${blocks
         .filter((block) => block.type === 'each')
         .map((block: EachBlockComponent) =>
@@ -83,7 +87,7 @@ export default class Fragment extends Component {
             ${this.allEntities.map((node) => generateNodeStr(this.identifiers, node))}
             ${this.allEntities
               .map((node) => generateAttrStr(this.identifiers, node))
-              .filter((list) => list.length > 0)}
+              .filter((list) => list.length)}
 
   
             ${blocks
@@ -132,7 +136,7 @@ export default class Fragment extends Component {
             ${this.references.map((r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`)}
 
           },
-          p(dirty) {
+          p() {
             ${blocks
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) => {
@@ -143,7 +147,7 @@ export default class Fragment extends Component {
                     block.render_each_update(this.allEntities, this.identifiers),
                   )}
                   ${block.render_each_for(false, block.render_each_detach())}
-                  ${block.vars.block_arr_length} = ${block.vars.block_arr_name}.length
+                  ${block.vars.block_arr_name}.length = ${block.iterable}.length
                 }
                 `;
               })}
@@ -158,17 +162,11 @@ export default class Fragment extends Component {
                 })`,
             )}
 
-            ${this.references.map(
-              (r) => b`
-                if (${this.dirty([r.ref], Object.keys(this.props))} && ${`${
-                this.identifiers[r.index]
-              }.${r.var}`} !== ${r.ref}) $$setAttrData(${this.identifiers[r.index]},"${r.var}",${
-                r.ref
-              })
-            `,
+            ${this.references.map((r) =>
+              render_ref_check(this.dirty(r.deps, Object.keys(this.props)), this.identifiers, r),
             )}
 
-            dirty.fill(-1)
+            $$dirty.fill(-1)
           }
         }
       }`;

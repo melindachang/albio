@@ -1,5 +1,5 @@
 import { ASTNode, Binding, EachBlock, IterableKey, Props, Reference } from '../interfaces';
-import { generateAttrStr, generateNodeStr, isReference, parse } from '../utils';
+import { generateAttrStr, generateNodeStr, isReference, parse, render_ref_check } from '../utils';
 import { b, x } from 'code-red';
 import { Node } from 'estree';
 import BlockComponent from './Block';
@@ -13,7 +13,6 @@ export default class EachBlockComponent extends BlockComponent {
   vars: {
     block_arr_name: string;
     create_func_name: string;
-    block_arr_length: string;
     unique_deps: string[];
   };
 
@@ -40,16 +39,17 @@ export default class EachBlockComponent extends BlockComponent {
     const all_deps: string[] = [];
     this.bindings.map((binding) => binding.deps).forEach((deps) => all_deps.push(...deps));
     this.vars = {
-      block_arr_name: `each_blocks_${this.index}`,
+      block_arr_name: `each_block_${this.index}`,
       create_func_name: `create_each_block_${this.index}`,
-      block_arr_length: `each_block_${this.index}_length`,
       unique_deps: [...new Set(all_deps)],
     };
   }
   render_each_for(reset: boolean, node: Node | Node[]): Node[] {
     const dec = reset ? b`let #i` : ``;
     const dec2 = reset ? x`#i = 0` : ``;
-    const operableLength = reset ? x`${this.iterable}.length` : x`${this.vars.block_arr_length}`;
+    const operableLength = reset
+      ? x`${this.iterable}.length`
+      : x`${this.vars.block_arr_name}.length`;
     return b`
       ${dec}
       for (${dec2}; #i < ${operableLength}; #i += 1) {
@@ -104,7 +104,7 @@ export default class EachBlockComponent extends BlockComponent {
   render_each_update(nodes: ASTNode[], identifiers: string[]): Node[] {
     return b`
       if (${this.vars.block_arr_name}[#i]) {
-        ${this.vars.block_arr_name}[#i].p(dirty)
+        ${this.vars.block_arr_name}[#i].p(#i)
       } else {
         ${this.render_each_populate()}
         ${this.render_each_create()}
@@ -114,15 +114,17 @@ export default class EachBlockComponent extends BlockComponent {
   }
 
   render_each_detach() {
-    return x`${this.vars.block_arr_name}[#i].d()`;
+    return x`${this.vars.block_arr_name}[#i].d(1)`;
   }
 
-  render_each_current(): Node {
+  render_each_current(index?: string): Node {
     return x`
     ${this.keys
       .map(
         (key) =>
-          `${key.name} = ${this.iterable}[i]${key.name === key.variableRef ? '' : '.' + key.name}`,
+          `${key.name} = ${this.iterable}[${index ? index : 'i'}]${
+            key.name === key.variableRef ? '' : '.' + key.name
+          }`,
       )
       .join(',')}`;
   }
@@ -180,8 +182,8 @@ export default class EachBlockComponent extends BlockComponent {
             ${this.references.map((r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`)}
               
           },
-          p(dirty) {
-            ${this.render_each_current()}
+          p(new_index) {
+            ${this.render_each_current('new_index')}
 
             ${this.bindings.map(
               (binding) =>
@@ -194,20 +196,13 @@ export default class EachBlockComponent extends BlockComponent {
                 })`,
             )}
 
-            ${this.references.map(
-              (r) => b`
-                if (${this.dirty(r.deps, props)} && ${`${this.identifiers[r.index]}.${
-                r.var
-              }`} !== ${r.ref}) $$setAttrData(${this.identifiers[r.index]},"${r.var}",${r.ref})
-            `,
+            ${this.references.map((r) =>
+              render_ref_check(this.dirty(r.deps, props), this.identifiers, r),
             )}
           },
-          d() {
+          d(detaching) {
             ${this.rootEntities.map(
-              (node) =>
-                x`${this.identifiers[node.index]}.parentNode.removeChild(${
-                  this.identifiers[node.index]
-                })`,
+              (node) => b`if (detaching) $$detach(${this.identifiers[node.index]})`,
             )}
           }
         }

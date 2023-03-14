@@ -1,6 +1,7 @@
-import { Node, Identifier } from 'estree';
+import { Node, Identifier, CallExpression, Expression } from 'estree';
 import { ASTNode, Binding, ElementTag, Reference, TextTag } from './interfaces';
 import * as code_red from 'code-red';
+import { walk } from 'estree-walker';
 
 export const parse = (source: string): Node =>
   code_red.parse(source, {
@@ -13,6 +14,16 @@ export function isReference(item: Reference | Binding): item is Reference {
   return (item as Reference).var !== undefined;
 }
 
+export function hasArguments(call: string) {
+  const exp = parse(call);
+  let args = false;
+  walk(exp, {
+    enter(node) {
+      if (node.type === 'CallExpression' && (node as CallExpression).arguments.length) args = true;
+    },
+  });
+  return args;
+}
 
 export function get_associated_events(bound: string): string[] {
   switch (bound) {
@@ -54,4 +65,27 @@ export function generateAttrStr(identifiers: string[], node: ASTNode): Node[] {
   return Object.entries((node as ElementTag).attrs!).map(
     ([name, value]) => code_red.x`${identifier}.setAttribute("${name}", "${value}")`,
   );
+}
+
+export function render_ref_check(
+  dirty_exp: Expression,
+  identifiers: string[],
+  ref: Reference,
+): Node[] {
+  switch (ref.var) {
+    case 'value': {
+      return code_red.b`
+      if (${dirty_exp} && ${`${identifiers[ref.index]}.${ref.var}`} !== ${ref.ref})
+        $$setAttrData(${identifiers[ref.index]}, "value", ${ref.ref})
+      `;
+    }
+    case 'checked': {
+      return code_red.b`
+      if (${dirty_exp})
+        ${identifiers[ref.index]}.checked = ${ref.ref}
+      `;
+    }
+    default:
+      return code_red.b``;
+  }
 }
