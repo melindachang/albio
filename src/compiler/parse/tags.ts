@@ -1,9 +1,11 @@
-import { Listener, TextTag, ElementTag, type ASTNode, Binding } from '../interfaces';
+import { Listener, TextTag, ElementTag, type ASTNode, Binding, Reference } from '../interfaces';
 import { Text, Element, Comment, type AnyNode } from 'domhandler';
+import { get_associated_events } from '../utils';
 
 export function parseTags(
   nodes: ASTNode[],
   listeners: Listener[],
+  references: Reference[],
   index: number,
   tags: AnyNode[],
   parent?: ASTNode,
@@ -14,7 +16,7 @@ export function parseTags(
     } else if (tag.type === 'comment') {
       index = parseComment(nodes, index, tag as Comment, parent);
     } else {
-      index = parseElement(nodes, listeners, index, tag as Element, parent);
+      index = parseElement(nodes, listeners, references, index, tag as Element, parent);
     }
   });
   return index;
@@ -87,6 +89,7 @@ export function addBinding(
 export function parseElement(
   nodes: ASTNode[],
   listeners: Listener[],
+  references: Reference[],
   index: number,
   tag: Element,
   parent?: ASTNode,
@@ -100,6 +103,15 @@ export function parseElement(
           index,
           event: k.split(':')[1],
           handler: v,
+        });
+      } else if (k.match(/^bind:/)) {
+        const bound = k.split(':')[1];
+        const assoc_events: string[] = get_associated_events(bound);
+        references.push({
+          index,
+          var: bound,
+          ref: v,
+          assoc_events,
         });
       } else {
         attrs[k] = v;
@@ -118,7 +130,7 @@ export function parseElement(
   };
   nodes.push(el);
 
-  return parseTags(nodes, listeners, index + 1, tag.children, el);
+  return parseTags(nodes, listeners, references, index + 1, tag.children, el);
 }
 
 export function parseComment(
@@ -150,12 +162,17 @@ export function pruneTrailingWhitespace(nodes: ASTNode[]): void {
   }
 }
 
-export function parseHtml(tags: AnyNode[]): { nodes: ASTNode[]; listeners: Listener[] } {
+export function parseHtml(tags: AnyNode[]): {
+  nodes: ASTNode[];
+  listeners: Listener[];
+  references: Reference[];
+} {
   const nodes: ASTNode[] = [];
   const listeners: Listener[] = [];
+  const references: Reference[] = [];
 
-  parseTags(nodes, listeners, 0, tags);
+  parseTags(nodes, listeners, references, 0, tags);
   if (nodes.length > 0) pruneTrailingWhitespace(nodes);
 
-  return { nodes, listeners };
+  return { nodes, listeners, references };
 }

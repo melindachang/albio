@@ -1,6 +1,6 @@
 import { x } from 'code-red';
-import { Expression } from 'estree';
-import { ASTNode, Binding, Listener } from '../interfaces';
+import { Node, Expression } from 'estree';
+import { ASTNode, Binding, Listener, Reference } from '../interfaces';
 import { CompilerParams } from '../interfaces';
 
 type BitMask = {
@@ -14,16 +14,19 @@ export default abstract class Component {
   childEntities: ASTNode[];
   bindings: Binding[];
   listeners: Listener[];
+  references: Reference[];
   identifiers: string[];
 
   constructor(parsed: CompilerParams) {
     this.allEntities = parsed.nodes;
     this.listeners = parsed.listeners;
+    this.references = parsed.references;
     this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
     this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
   }
 
   abstract populateDeps(...args: any): void;
+  abstract render_handler_func(...args: any): Node[];
   dirty(names: string[], props: string[]): Expression {
     const get_bitmask = () => {
       const bitmask: BitMask[] = [];

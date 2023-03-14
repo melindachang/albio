@@ -7,6 +7,11 @@ export function $$setData(text: Text, data: any): void {
   if (text.wholeText !== data) text.data = data;
 }
 
+export function $$setAttrData(el: any, attr: string, data: any): void {
+  data = '' + data;
+  el[attr] = data;
+}
+
 export function $$text(data: any): Text {
   return document.createTextNode(data);
 }

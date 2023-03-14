@@ -28,9 +28,33 @@ export default class Renderer {
     let $$dirty = [${base_dirty.join(',')}]
     ${this.fragment.residuals}
         
+    
+    ${this.fragment.references
+      .filter((r) => r.assoc_events)
+      .map((r) =>
+        this.fragment.render_handler_func(this.fragment.identifiers[r.index], r, r.assoc_events),
+      )}
+
+    ${this.blocks.map((block) =>
+      block.references
+        .filter((r) => r.assoc_events)
+        .map((r) =>
+          block.render_handler_func(
+            block.identifiers[r.index],
+            r,
+            r.assoc_events,
+            this.fragment.props,
+          ),
+        ),
+    )}
+    
+
     ${this.fragment.render_fragment(this.blocks)}
     ${this.blocks.map((block) => block.render(Object.keys(this.fragment.props)))}
+    
+    
     export const app = create_fragment()
+
 
     `;
     return this.ast;

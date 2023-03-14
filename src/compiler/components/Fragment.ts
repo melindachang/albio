@@ -1,6 +1,6 @@
-import { fetchObject, generateAttrStr, generateNodeStr, parse } from '../utils';
+import { fetchObject, generateAttrStr, generateNodeStr, isReference, parse } from '../utils';
 import { Node, Statement } from 'estree';
-import { Binding, CompilerParams, Props } from '../interfaces';
+import { Binding, CompilerParams, Props, Reference } from '../interfaces';
 import Component from './Component';
 import { analyze, extract_names } from 'periscopic';
 import { walk } from 'estree-walker';
@@ -13,7 +13,6 @@ export default class Fragment extends Component {
   residuals: Node[];
   props: Props;
   ast: Node[];
-  ctx: any[];
 
   constructor(parsed: CompilerParams) {
     super(parsed);
@@ -24,6 +23,7 @@ export default class Fragment extends Component {
     this.props = parsed.props || {};
     this.ast = [];
     this.populateDeps(this.bindings);
+    this.populateDeps(this.references);
   }
 
   invalidateResiduals(ast: Node): void {
@@ -51,7 +51,10 @@ export default class Fragment extends Component {
   render_fragment(blocks: BlockComponent[]): Node[] {
     this.invalidateResiduals(this.residuals as any as Node);
     this.ast = b`
+
+
     function create_fragment() {
+
       let ${this.identifiers
         .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
         .join(',')}
@@ -81,6 +84,7 @@ export default class Fragment extends Component {
             ${this.allEntities
               .map((node) => generateAttrStr(this.identifiers, node))
               .filter((list) => list.length > 0)}
+
   
             ${blocks
               .filter((block) => block.type === 'each')
@@ -94,6 +98,16 @@ export default class Fragment extends Component {
                   listener.handler
                 })`,
             )}
+
+            ${this.references
+              .filter((r) => r.assoc_events)
+              .map((r) => {
+                return r.assoc_events.map((e) => {
+                  return x`${this.identifiers[r.index]}.addEventListener("${e}", () => { ${
+                    this.identifiers[r.index] + '_handler_' + e + `(${this.identifiers[r.index]})`
+                  }})`;
+                });
+              })}
           },
           m(target) {
             mountPoint = target;
@@ -114,6 +128,9 @@ export default class Fragment extends Component {
                   block.render_each_mount(this.allEntities, this.identifiers),
                 ),
               )}
+
+            ${this.references.map((r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`)}
+
           },
           p(dirty) {
             ${blocks
@@ -141,6 +158,16 @@ export default class Fragment extends Component {
                 })`,
             )}
 
+            ${this.references.map(
+              (r) => b`
+                if (${this.dirty([r.ref], Object.keys(this.props))} && ${`${
+                this.identifiers[r.index]
+              }.${r.var}`} !== ${r.ref}) $$setAttrData(${this.identifiers[r.index]},"${r.var}",${
+                r.ref
+              })
+            `,
+            )}
+
             dirty.fill(-1)
           }
         }
@@ -148,10 +175,26 @@ export default class Fragment extends Component {
     return this.ast;
   }
 
-  populateDeps(bindings: Binding[]): void {
+  render_handler_func(identifier: string, ref: Reference, event: string[]): Node[] {
+    let exps: Node[] = [];
+    event.forEach((e) => {
+      let func = `${identifier}_handler_${e}`;
+      exps.push(x`
+      function ${func}(el) {
+        ${ref.ref} = el.${ref.var};
+        $$invalidate($$dirty, [${ref.deps
+          .map((d) => Object.keys(this.props).indexOf(d))
+          .join(',')}], (${ref.ref}), app.p);
+      }
+      `);
+    });
+    return exps;
+  }
+
+  populateDeps(bindings: Binding[] | Reference[]): void {
     bindings.forEach((binding) => {
       binding.deps = [];
-      const expression: Node = parse(binding.data);
+      const expression: Node = isReference(binding) ? parse(binding.ref) : parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => binding.deps.push(ref));
     });

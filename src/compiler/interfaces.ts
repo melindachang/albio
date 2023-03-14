@@ -79,9 +79,18 @@ export interface Listener {
   handler: string;
 }
 
+export interface Reference {
+  index: number;
+  var: string;
+  ref: string;
+  assoc_events?: string[];
+  deps?: string[];
+}
+
 export interface CompilerParams {
   nodes: ASTNode[];
   listeners: Listener[];
+  references: Reference[];
   props?: Props;
   reactives?: Statement[];
   residuals?: Node[];

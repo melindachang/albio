@@ -1,5 +1,5 @@
 import { Node, Identifier } from 'estree';
-import { ASTNode, Binding, ElementTag, TextTag } from './interfaces';
+import { ASTNode, Binding, ElementTag, Reference, TextTag } from './interfaces';
 import * as code_red from 'code-red';
 
 export const parse = (source: string): Node =>
@@ -8,6 +8,22 @@ export const parse = (source: string): Node =>
     ecmaVersion: 12,
     locations: true,
   });
+
+export function isReference(item: Reference | Binding): item is Reference {
+  return (item as Reference).var !== undefined;
+}
+
+
+export function get_associated_events(bound: string): string[] {
+  switch (bound) {
+    case 'value':
+      return ['input'];
+    case 'checked':
+      return ['change'];
+    default:
+      return [];
+  }
+}
 
 export function fetchObject(node: Node): Identifier {
   while (node.type === 'MemberExpression') node = node.object;
