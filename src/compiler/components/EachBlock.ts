@@ -203,7 +203,7 @@ export default class EachBlockComponent extends BlockComponent {
                   this.identifiers[binding.index] + '_value'
                 } !== (${this.identifiers[binding.index] + '_value'} = (${
                   binding.data
-                }) + '')) $$setData(${this.identifiers[binding.index]},${
+                }) + '')) $$set_data(${this.identifiers[binding.index]},${
                   this.identifiers[binding.index] + '_value'
                 })`,
             )}

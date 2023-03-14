@@ -2,12 +2,12 @@ export function $$element(node: any): any {
   return document.createElement(node);
 }
 
-export function $$setData(text: Text, data: any): void {
+export function $$set_data(text: Text, data: any): void {
   data = '' + data;
   if (text.wholeText !== data) text.data = data;
 }
 
-export function $$setAttrData(el: any, attr: string, data: any): void {
+export function $$set_attr_data(el: any, attr: string, data: any): void {
   data = '' + data;
   el[attr] = data;
 }

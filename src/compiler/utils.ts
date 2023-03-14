@@ -80,7 +80,7 @@ export function render_ref_check(
     case 'value': {
       return code_red.b`
       if (${dirty_exp} && ${`${identifiers[ref.index]}.${ref.var}`} !== ${ref.ref})
-        $$setAttrData(${identifiers[ref.index]}, "value", ${ref.ref})
+        $$set_attr_data(${identifiers[ref.index]}, "value", ${ref.ref})
       `;
     }
     case 'checked': {

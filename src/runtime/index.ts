@@ -1,1 +1,1 @@
-export { $$invalidate, $$text, $$setData } from './internal/index';
+export { $$invalidate, $$text, $$set_data } from './internal/index';
