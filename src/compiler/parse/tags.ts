@@ -123,13 +123,14 @@ export function parse_element(
 
   if (tag.attribs) {
     Object.entries(tag.attribs).forEach(([k, v]) => {
-      if (k.match(/^on:/)) {
+      if (k.match(/^on:/) || k.substring(0, 1).match(/^@/)) {
+        const div = k.search('@') > -1 ? '@' : ':';
         listeners.push({
           index,
-          event: k.split(':')[1],
+          event: k.split(div)[1],
           handler: v,
         });
-      } else if (k.match(/^bind:/)) {
+      } else if (k.match(/^bind:/) || k.substring(0, 1).match(/^:/)) {
         const bound = k.split(':')[1];
         const assoc_events: string[] = get_associated_events(bound);
         references.push({
