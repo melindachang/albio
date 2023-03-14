@@ -1,5 +1,5 @@
 import { AnyNode } from 'domhandler';
-import { Node, Statement } from 'estree';
+import { LabeledStatement, Node, Statement } from 'estree';
 import { Component } from './components';
 
 export type ASTNode = BaseNode | TextTag | ElementTag | Binding | CommentTag;
@@ -93,9 +93,14 @@ export interface CompilerParams {
   listeners: Listener[];
   references: Reference[];
   props?: Props;
-  reactives?: Statement[];
+  reactives?: ReactiveStatement[];
   residuals?: Node[];
   blocks?: Component[];
+}
+
+export interface ReactiveStatement {
+  chunk: Statement;
+  deps: string[];
 }
 
 export interface IterableKey {

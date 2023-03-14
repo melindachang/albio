@@ -1,8 +1,9 @@
-import { Props } from '../interfaces';
-import { parse } from '../utils';
+import { Props, ReactiveStatement } from '../interfaces';
+import { fetch_object, parse } from '../utils';
 import { print, x } from 'code-red';
 import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
 import { Element, Text } from 'domhandler';
+import { analyze, extract_names } from 'periscopic';
 
 export function parse_code(scripts: Element[]) {
   let source = '';
@@ -26,7 +27,7 @@ export function get_program(source: string) {
 
 export function extract_scripts(ast: Program) {
   let props: Props = {};
-  let reactives: Statement[] = [];
+  let reactives: ReactiveStatement[] = [];
   let residuals: Node[] = [];
 
   ast.body.forEach((node) => {
@@ -39,8 +40,9 @@ export function extract_scripts(ast: Program) {
         });
         break;
       case 'LabeledStatement':
-        if (node.label.name === '$') {
-          reactives.push(node.body);
+        if (node.label.name === '#') {
+          const { scope } = analyze(node);
+          reactives.push({ chunk: node.body, deps: [...scope.references] });
         }
         break;
       default:

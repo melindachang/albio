@@ -7,8 +7,8 @@ import {
   parse,
   render_ref_check,
 } from '../utils';
-import { Node, Statement } from 'estree';
-import { Binding, CompilerParams, Props, Reference } from '../interfaces';
+import { Node } from 'estree';
+import { Binding, CompilerParams, Props, ReactiveStatement, Reference } from '../interfaces';
 import Component from './Component';
 import { analyze, extract_names } from 'periscopic';
 import { walk } from 'estree-walker';
@@ -17,7 +17,7 @@ import BlockComponent from './Block';
 import EachBlockComponent from './EachBlock';
 
 export default class Fragment extends Component {
-  reactives: Statement[];
+  reactives: ReactiveStatement[];
   residuals: Node[];
   props: Props;
   ast: Node[];
@@ -26,7 +26,7 @@ export default class Fragment extends Component {
     super(parsed);
     this.root_entities = parsed.nodes.filter((node) => !node.parent);
     this.child_entities = parsed.nodes.filter((node) => node.parent);
-    this.residuals = parsed.reactives || [];
+    this.reactives = parsed.reactives || [];
     this.residuals = parsed.residuals || [];
     this.props = parsed.props || {};
     this.ast = [];
@@ -35,7 +35,7 @@ export default class Fragment extends Component {
     this.populate_deps(this.class_references);
   }
 
-  invalidateResiduals(ast: Node): void {
+  invalidate_residuals(ast: Node): void {
     const props: string[] = Object.keys(this.props);
     walk(ast, {
       enter(node: any) {
@@ -57,8 +57,15 @@ export default class Fragment extends Component {
     });
   }
 
+  filter_reactive_deps() {
+    this.reactives.forEach((r) => {
+      r.deps = r.deps.filter((d) => Object.keys(this.props).includes(d));
+    });
+  }
+
   render_fragment(blocks: BlockComponent[]): Node[] {
-    this.invalidateResiduals(this.residuals as any as Node);
+    this.invalidate_residuals(this.residuals as any as Node);
+    this.filter_reactive_deps();
     this.ast = b`
 
 
@@ -176,6 +183,10 @@ export default class Fragment extends Component {
                 r,
               )}
             `,
+            )}
+
+            ${this.reactives.map(
+              (r) => b`if (${this.dirty(r.deps, Object.keys(this.props))}) { ${r.chunk} }`,
             )}
 
             $$dirty.fill(-1)
