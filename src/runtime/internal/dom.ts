@@ -23,5 +23,5 @@ export function $$detach(node: any) {
 }
 
 export function $$toggle_class(el: any, name: string, toggle: boolean) {
-  el.classList[toggle ? "add" : "remove"](name);
+  el.classList[toggle ? 'add' : 'remove'](name);
 }

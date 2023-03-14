@@ -1,7 +1,13 @@
 import { Props, ReactiveStatement } from '../interfaces';
 import { fetch_object, parse } from '../utils';
 import { print, x } from 'code-red';
-import { Identifier, Node, Statement, VariableDeclaration, Program } from 'estree';
+import {
+  Identifier,
+  Node,
+  Statement,
+  VariableDeclaration,
+  Program,
+} from 'estree';
 import { Element, Text } from 'domhandler';
 import { analyze, extract_names } from 'periscopic';
 
@@ -33,11 +39,13 @@ export function extract_scripts(ast: Program) {
   ast.body.forEach((node) => {
     switch (node.type) {
       case 'ExportNamedDeclaration':
-        (node.declaration as VariableDeclaration).declarations.forEach((declarator) => {
-          props[(declarator.id as Identifier).name] = declarator.init
-            ? print(x`${declarator.init}`).code
-            : undefined;
-        });
+        (node.declaration as VariableDeclaration).declarations.forEach(
+          (declarator) => {
+            props[(declarator.id as Identifier).name] = declarator.init
+              ? print(x`${declarator.init}`).code
+              : undefined;
+          },
+        );
         break;
       case 'LabeledStatement':
         if (node.label.name === '#') {

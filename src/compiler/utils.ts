@@ -19,14 +19,23 @@ export function has_arguments(call: string) {
   let args = false;
   walk(exp, {
     enter(node) {
-      if (node.type === 'CallExpression' && (node as CallExpression).arguments.length) args = true;
+      if (
+        node.type === 'CallExpression' &&
+        (node as CallExpression).arguments.length
+      )
+        args = true;
     },
   });
   return args;
 }
 
-export function generate_toggle_class_str(identifiers: string[], ref: Reference): Node {
-  return code_red.x`$$toggle_class(${identifiers[ref.index]}, "${ref.var}", ${ref.ref})`;
+export function generate_toggle_class_str(
+  identifiers: string[],
+  ref: Reference,
+): Node {
+  return code_red.x`$$toggle_class(${identifiers[ref.index]}, "${ref.var}", ${
+    ref.ref
+  })`;
 }
 
 export function get_associated_events(bound: string): string[] {
@@ -49,7 +58,10 @@ export function destringify(str: string): string {
   return eval(`(function() {return ${str}})()`);
 }
 
-export function generate_node_str(identifiers: string[], node: ASTNode): Node[] {
+export function generate_node_str(
+  identifiers: string[],
+  node: ASTNode,
+): Node[] {
   const identifier = identifiers[node.index];
   switch (node.type) {
     case 'Text':
@@ -63,11 +75,15 @@ export function generate_node_str(identifiers: string[], node: ASTNode): Node[] 
   }
 }
 
-export function generate_attr_str(identifiers: string[], node: ASTNode): Node[] {
+export function generate_attr_str(
+  identifiers: string[],
+  node: ASTNode,
+): Node[] {
   if (!(node as ElementTag).attrs) return [];
   const identifier = identifiers[node.index];
   return Object.entries((node as ElementTag).attrs!).map(
-    ([name, value]) => code_red.x`${identifier}.setAttribute("${name}", "${value}")`,
+    ([name, value]) =>
+      code_red.x`${identifier}.setAttribute("${name}", "${value}")`,
   );
 }
 
@@ -79,7 +95,9 @@ export function render_ref_check(
   switch (ref.var) {
     case 'value': {
       return code_red.b`
-      if (${dirty_exp} && ${`${identifiers[ref.index]}.${ref.var}`} !== ${ref.ref})
+      if (${dirty_exp} && ${`${identifiers[ref.index]}.${ref.var}`} !== ${
+        ref.ref
+      })
         $$set_attr_data(${identifiers[ref.index]}, "value", ${ref.ref})
       `;
     }

@@ -1,4 +1,11 @@
-import { ASTNode, Binding, EachBlock, IterableKey, Props, Reference } from '../interfaces';
+import {
+  ASTNode,
+  Binding,
+  EachBlock,
+  IterableKey,
+  Props,
+  Reference,
+} from '../interfaces';
 import {
   generate_attr_str,
   generate_node_str,
@@ -45,7 +52,9 @@ export default class EachBlockComponent extends BlockComponent {
     this.populate_deps(this.references, this.keys, this.iterable);
     this.populate_deps(this.class_references, this.keys, this.iterable);
     const all_deps: string[] = [];
-    this.bindings.map((binding) => binding.deps).forEach((deps) => all_deps.push(...deps));
+    this.bindings
+      .map((binding) => binding.deps)
+      .forEach((deps) => all_deps.push(...deps));
     this.vars = {
       block_arr_name: `each_block_${this.index}`,
       create_func_name: `create_each_block_${this.index}`,
@@ -66,7 +75,12 @@ export default class EachBlockComponent extends BlockComponent {
     `;
   }
 
-  render_handler_func(identifier: string, ref: Reference, event: string[], props: Props): Node[] {
+  render_handler_func(
+    identifier: string,
+    ref: Reference,
+    event: string[],
+    props: Props,
+  ): Node[] {
     let exps: Node[] = [];
     event.forEach((e) => {
       let func = `${identifier}_handler_${e}`;
@@ -74,13 +88,16 @@ export default class EachBlockComponent extends BlockComponent {
       const ast = parse(ref.ref);
       walk(ast, {
         enter(node) {
-          if (node.type === 'MemberExpression') property = (node as any).property.name;
+          if (node.type === 'MemberExpression')
+            property = (node as any).property.name;
         },
       });
       /** TODO: Doesn't work with property literals */
       exps.push(x`
       function ${func}(each_value, i) {
-        ${property ? `each_value[i].${property}` : 'each_value[i]'} = this.${ref.var};
+        ${property ? `each_value[i].${property}` : 'each_value[i]'} = this.${
+        ref.var
+      };
         $$invalidate($$dirty, [${ref.deps
           .map((d) => Object.keys(props).indexOf(d))
           .join(',')}], (each_value), app.p);
@@ -101,10 +118,15 @@ export default class EachBlockComponent extends BlockComponent {
   render_each_mount(nodes: ASTNode[], identifiers: string[]): Node {
     return x`
     ${this.vars.block_arr_name}[#i].m(${
-      this.start_node.parent ? identifiers[this.start_node.parent.index] : 'mountPoint'
+      this.start_node.parent
+        ? identifiers[this.start_node.parent.index]
+        : 'mountPoint'
     }, ${
       nodes.some((node) => this.end_node.endIndex === node.startIndex)
-        ? identifiers[nodes.find((node) => this.end_node.endIndex === node.startIndex).index]
+        ? identifiers[
+            nodes.find((node) => this.end_node.endIndex === node.startIndex)
+              .index
+          ]
         : 'null'
     })`;
   }
@@ -143,12 +165,18 @@ export default class EachBlockComponent extends BlockComponent {
         let ${this.render_each_current()}
 
          let ${this.identifiers
-           .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
+           .concat(
+             this.identifiers
+               .filter((i) => i.indexOf('B') > -1)
+               .map((x) => `${x}_value`),
+           )
            .join(',')}
 
         return {
           c() {
-            ${this.all_entities.map((node) => generate_node_str(this.identifiers, node))}
+            ${this.all_entities.map((node) =>
+              generate_node_str(this.identifiers, node),
+            )}
 
             ${this.all_entities
               .map((node) => generate_attr_str(this.identifiers, node))
@@ -156,16 +184,18 @@ export default class EachBlockComponent extends BlockComponent {
 
             ${this.listeners.map(
               (listener) =>
-                x`${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
-                  listener.handler
-                })`,
+                x`${this.identifiers[listener.index]}.addEventListener("${
+                  listener.event
+                }", ${listener.handler})`,
             )}
             
             ${this.references
               .filter((r) => r.assoc_events)
               .map((r) => {
                 return r.assoc_events.map((e) => {
-                  return x`${this.identifiers[r.index]}.addEventListener("${e}", () => { ${
+                  return x`${
+                    this.identifiers[r.index]
+                  }.addEventListener("${e}", () => { ${
                     this.identifiers[r.index] +
                     '_handler_' +
                     e +
@@ -175,13 +205,18 @@ export default class EachBlockComponent extends BlockComponent {
               })}
 
               
-            ${this.class_references.map((r) => generate_toggle_class_str(this.identifiers, r))}
+            ${this.class_references.map((r) =>
+              generate_toggle_class_str(this.identifiers, r),
+            )}
 
 
           },
           m(target, anchor) {
             ${this.root_entities.map(
-              (node) => x`target.insertBefore(${this.identifiers[node.index]}, anchor || null)`,
+              (node) =>
+                x`target.insertBefore(${
+                  this.identifiers[node.index]
+                }, anchor || null)`,
             )}
 
             ${this.child_entities.map(
@@ -191,7 +226,9 @@ export default class EachBlockComponent extends BlockComponent {
                 })`,
             )}
             
-            ${this.references.map((r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`)}
+            ${this.references.map(
+              (r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`,
+            )}
               
           },
           p(new_index) {
@@ -214,14 +251,18 @@ export default class EachBlockComponent extends BlockComponent {
             
             ${this.class_references.map(
               (r) => b`
-              if (${this.dirty(r.deps, props)}) ${generate_toggle_class_str(this.identifiers, r)}
+              if (${this.dirty(r.deps, props)}) ${generate_toggle_class_str(
+                this.identifiers,
+                r,
+              )}
             `,
             )}
 
           },
           d(detaching) {
             ${this.root_entities.map(
-              (node) => b`if (detaching) $$detach(${this.identifiers[node.index]})`,
+              (node) =>
+                b`if (detaching) $$detach(${this.identifiers[node.index]})`,
             )}
           }
         }
@@ -229,13 +270,21 @@ export default class EachBlockComponent extends BlockComponent {
     `;
   }
 
-  populate_deps(bindings: Binding[] | Reference[], keys: IterableKey[], iterable: string): void {
+  populate_deps(
+    bindings: Binding[] | Reference[],
+    keys: IterableKey[],
+    iterable: string,
+  ): void {
     bindings.forEach((binding) => {
       let deps: Set<string> = new Set();
-      const expression: Node = is_reference(binding) ? parse(binding.ref) : parse(binding.data);
+      const expression: Node = is_reference(binding)
+        ? parse(binding.ref)
+        : parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => {
-        keys.map((key) => key.name).includes(ref) ? deps.add(iterable) : deps.add(ref);
+        keys.map((key) => key.name).includes(ref)
+          ? deps.add(iterable)
+          : deps.add(ref);
       });
       binding.deps = [...deps];
     });

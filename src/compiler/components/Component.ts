@@ -23,8 +23,12 @@ export default abstract class Component {
     this.listeners = parsed.listeners;
     this.references = parsed.references.filter((r) => !r.type);
     this.class_references = parsed.references.filter((r) => r.type === 'class');
-    this.identifiers = parsed.nodes.map((node) => [node.type[0], node.index].join(''));
-    this.bindings = parsed.nodes.filter((node) => node.type === 'Binding') as Binding[];
+    this.identifiers = parsed.nodes.map((node) =>
+      [node.type[0], node.index].join(''),
+    );
+    this.bindings = parsed.nodes.filter(
+      (node) => node.type === 'Binding',
+    ) as Binding[];
   }
 
   abstract populate_deps(...args: any): void;

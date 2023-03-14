@@ -14,8 +14,12 @@ export default abstract class BlockComponent extends Component {
     this.index = block.index;
     this.start_node = parse_html([block.start_node]).nodes[0];
     this.end_node = parse_html([block.end_node]).nodes[0];
-    this.root_entities = this.all_entities.filter((node) => node.parent === this.start_node.parent);
-    this.child_entities = this.all_entities.filter((node) => node.parent !== this.start_node.parent);
+    this.root_entities = this.all_entities.filter(
+      (node) => node.parent === this.start_node.parent,
+    );
+    this.child_entities = this.all_entities.filter(
+      (node) => node.parent !== this.start_node.parent,
+    );
     this.type = block.nodeType;
   }
 

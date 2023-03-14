@@ -8,7 +8,13 @@ import {
   render_ref_check,
 } from '../utils';
 import { Node } from 'estree';
-import { Binding, CompilerParams, Props, ReactiveStatement, Reference } from '../interfaces';
+import {
+  Binding,
+  CompilerParams,
+  Props,
+  ReactiveStatement,
+  Reference,
+} from '../interfaces';
 import Component from './Component';
 import { analyze, extract_names } from 'periscopic';
 import { walk } from 'estree-walker';
@@ -48,9 +54,9 @@ export default class Fragment extends Component {
 
         if (mutated && mutated.some((m) => props.indexOf(m) > -1)) {
           this.replace(
-            x`$$invalidate($$dirty, [${mutated.map((m) => props.indexOf(m)).join(',')}], (${
-              print(node).code
-            }), app.p)`,
+            x`$$invalidate($$dirty, [${mutated
+              .map((m) => props.indexOf(m))
+              .join(',')}], (${print(node).code}), app.p)`,
           );
         }
       },
@@ -72,15 +78,18 @@ export default class Fragment extends Component {
     function create_fragment() {
 
       let ${this.identifiers
-        .concat(this.identifiers.filter((i) => i.indexOf('B') > -1).map((x) => `${x}_value`))
+        .concat(
+          this.identifiers
+            .filter((i) => i.indexOf('B') > -1)
+            .map((x) => `${x}_value`),
+        )
         .join(',')}
 
       ${blocks
         .filter((block) => block.type === 'each')
         .map(
-          (block: EachBlockComponent) => b`
-            let ${block.vars.block_arr_name} = []
-        `,
+          (block: EachBlockComponent) =>
+            b`let ${block.vars.block_arr_name} = []`,
         )}
           
       ${blocks
@@ -93,7 +102,9 @@ export default class Fragment extends Component {
             
         return {
           c() {
-            ${this.all_entities.map((node) => generate_node_str(this.identifiers, node))}
+            ${this.all_entities.map((node) =>
+              generate_node_str(this.identifiers, node),
+            )}
             ${this.all_entities
               .map((node) => generate_attr_str(this.identifiers, node))
               .filter((list) => list.length)}
@@ -107,18 +118,25 @@ export default class Fragment extends Component {
   
             ${this.listeners.map(
               (listener) =>
-                x`${this.identifiers[listener.index]}.addEventListener("${listener.event}", ${
-                  listener.handler
-                })`,
+                x`${this.identifiers[listener.index]}.addEventListener("${
+                  listener.event
+                }", ${listener.handler})`,
             )}
 
-            ${this.class_references.map((r) => generate_toggle_class_str(this.identifiers, r))}
+            ${this.class_references.map((r) =>
+              generate_toggle_class_str(this.identifiers, r),
+            )}
             ${this.references
               .filter((r) => r.assoc_events)
               .map((r) => {
                 return r.assoc_events.map((e) => {
-                  return x`${this.identifiers[r.index]}.addEventListener("${e}", () => { ${
-                    this.identifiers[r.index] + '_handler_' + e + `(${this.identifiers[r.index]})`
+                  return x`${
+                    this.identifiers[r.index]
+                  }.addEventListener("${e}", () => { ${
+                    this.identifiers[r.index] +
+                    '_handler_' +
+                    e +
+                    `(${this.identifiers[r.index]})`
                   }})`;
                 });
               })}
@@ -132,7 +150,9 @@ export default class Fragment extends Component {
                 })`,
             )}
   
-            ${this.root_entities.map((node) => x`target.append(${this.identifiers[node.index]})`)}
+            ${this.root_entities.map(
+              (node) => x`target.append(${this.identifiers[node.index]})`,
+            )}
   
             ${blocks
               .filter((block) => block.type === 'each')
@@ -143,7 +163,9 @@ export default class Fragment extends Component {
                 ),
               )}
 
-            ${this.references.map((r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`)}
+            ${this.references.map(
+              (r) => x`${this.identifiers[r.index]}.${r.var} = ${r.ref}`,
+            )}
 
           },
           p() {
@@ -151,10 +173,16 @@ export default class Fragment extends Component {
               .filter((block) => block.type === 'each')
               .map((block: EachBlockComponent) => {
                 return b`
-                if (${this.dirty(block.vars.unique_deps, Object.keys(this.props))}) {
+                if (${this.dirty(
+                  block.vars.unique_deps,
+                  Object.keys(this.props),
+                )}) {
                   ${block.render_each_for(
                     true,
-                    block.render_each_update(this.all_entities, this.identifiers),
+                    block.render_each_update(
+                      this.all_entities,
+                      this.identifiers,
+                    ),
                   )}
                   ${block.render_each_for(false, block.render_each_detach())}
                   ${block.vars.block_arr_name}.length = ${block.iterable}.length
@@ -173,20 +201,27 @@ export default class Fragment extends Component {
             )}
 
             ${this.references.map((r) =>
-              render_ref_check(this.dirty(r.deps, Object.keys(this.props)), this.identifiers, r),
+              render_ref_check(
+                this.dirty(r.deps, Object.keys(this.props)),
+                this.identifiers,
+                r,
+              ),
             )}
 
             ${this.class_references.map(
               (r) => b`
-              if (${this.dirty(r.deps, Object.keys(this.props))}) ${generate_toggle_class_str(
-                this.identifiers,
-                r,
-              )}
+              if (${this.dirty(
+                r.deps,
+                Object.keys(this.props),
+              )}) ${generate_toggle_class_str(this.identifiers, r)}
             `,
             )}
 
             ${this.reactives.map(
-              (r) => b`if (${this.dirty(r.deps, Object.keys(this.props))}) { ${r.chunk} }`,
+              (r) =>
+                b`if (${this.dirty(r.deps, Object.keys(this.props))}) { ${
+                  r.chunk
+                } }`,
             )}
 
             $$dirty.fill(-1)
@@ -196,7 +231,11 @@ export default class Fragment extends Component {
     return this.ast;
   }
 
-  render_handler_func(identifier: string, ref: Reference, event: string[]): Node[] {
+  render_handler_func(
+    identifier: string,
+    ref: Reference,
+    event: string[],
+  ): Node[] {
     let exps: Node[] = [];
     event.forEach((e) => {
       let func = `${identifier}_handler_${e}`;
@@ -215,7 +254,9 @@ export default class Fragment extends Component {
   populate_deps(bindings: Binding[] | Reference[]): void {
     bindings.forEach((binding) => {
       binding.deps = [];
-      const expression: Node = is_reference(binding) ? parse(binding.ref) : parse(binding.data);
+      const expression: Node = is_reference(binding)
+        ? parse(binding.ref)
+        : parse(binding.data);
       const { scope } = analyze(expression);
       [...scope.references].forEach((ref) => binding.deps.push(ref));
     });

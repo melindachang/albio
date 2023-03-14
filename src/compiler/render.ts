@@ -18,11 +18,17 @@ export default class Renderer {
   render_instance(): Node[] {
     const base_dirty = [];
     const numProps = Object.keys(this.fragment.props).length;
-    for (let i = 0; i < numProps / 31 + (numProps % 1 === 0 ? 0 : 1); i++) base_dirty.push(-1);
+    for (let i = 0; i < numProps / 31 + (numProps % 1 === 0 ? 0 : 1); i++)
+      base_dirty.push(-1);
     this.ast = b`
 
     let {${Object.keys(this.fragment.props).join(',')}} = ${util.inspect(
-      Object.fromEntries(Object.entries(this.fragment.props).map(([k, v]) => [k, destringify(v)])),
+      Object.fromEntries(
+        Object.entries(this.fragment.props).map(([k, v]) => [
+          k,
+          destringify(v),
+        ]),
+      ),
     )}
 
     let $$dirty = [${base_dirty.join(',')}]
@@ -32,7 +38,11 @@ export default class Renderer {
     ${this.fragment.references
       .filter((r) => r.assoc_events)
       .map((r) =>
-        this.fragment.render_handler_func(this.fragment.identifiers[r.index], r, r.assoc_events),
+        this.fragment.render_handler_func(
+          this.fragment.identifiers[r.index],
+          r,
+          r.assoc_events,
+        ),
       )}
 
     ${this.blocks.map((block) =>
@@ -50,7 +60,9 @@ export default class Renderer {
     
 
     ${this.fragment.render_fragment(this.blocks)}
-    ${this.blocks.map((block) => block.render(Object.keys(this.fragment.props)))}
+    ${this.blocks.map((block) =>
+      block.render(Object.keys(this.fragment.props)),
+    )}
     
     
     export const app = create_fragment()

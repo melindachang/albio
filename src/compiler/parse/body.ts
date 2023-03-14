@@ -1,11 +1,19 @@
 import { readFileSync } from 'fs';
 import { parseFragment } from 'parse5';
 import { adapter } from 'parse5-htmlparser2-tree-adapter';
-import { ChildNode, Document, Element, hasChildren, type AnyNode } from 'domhandler';
+import {
+  ChildNode,
+  Document,
+  Element,
+  hasChildren,
+  type AnyNode,
+} from 'domhandler';
 import { Block, BlockType } from '../interfaces';
 
 export const extract_fragment = (path: string) => {
-  const source = path.endsWith('.html') ? readFileSync(path, { encoding: 'utf8' }) : path;
+  const source = path.endsWith('.html')
+    ? readFileSync(path, { encoding: 'utf8' })
+    : path;
   const fragment: Document = parseFragment(source, {
     treeAdapter: adapter,
     sourceCodeLocationInfo: true,
@@ -47,7 +55,10 @@ export const extract_fragment = (path: string) => {
     const extract_chunk = (b: Block, tag: AnyNode, parentArr = tags) => {
       if (tag.parent === b.start_node.parent) {
         const ind = parentArr.indexOf(tag);
-        if (tag.startIndex >= b.start_node.endIndex && tag.endIndex <= b.end_node.startIndex) {
+        if (
+          tag.startIndex >= b.start_node.endIndex &&
+          tag.endIndex <= b.end_node.startIndex
+        ) {
           b.chunk.push(tag);
           parentArr.splice(ind, 1);
         } else if (b.start_node === tag || b.end_node === tag) {
